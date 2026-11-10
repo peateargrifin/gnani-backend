@@ -35,6 +35,7 @@ _lock = asyncio.Lock()
 _last_call = 0.0
 _cache = {}          # (crop, state, deep) -> (fetched_at, records)
 _down_until = 0.0
+_last_error = ""
 
 class Unavailable(Exception):
     pass
@@ -120,10 +121,11 @@ async def rows(client, crop, state, deep=False):
     hit = _cache.get(key)
     if hit and time.monotonic() - hit[0] < ttl:
         return hit[1], time.monotonic() - hit[0]
+    global _last_error
     if time.monotonic() < _down_until:
         if hit:
             return hit[1], time.monotonic() - hit[0]
-        raise Unavailable("recently failed, retrying shortly")
+        raise Unavailable(f"{_last_error}; retrying in {int(_down_until - time.monotonic())} s")
     c_slug = crop_slug(crop)
     try:
         page, s_slug = None, None
@@ -131,25 +133,30 @@ async def rows(client, crop, state, deep=False):
             page = await _get(client, f"{BASE}/{c_slug}/{s_slug}")
             if page:
                 break
-        if not page:
-            return [], 0.0
-        records = parse(page)
-        if deep:
-            have = {slug(r["market"]) for r in records}
-            for m in [m for m in market_links(page, c_slug, s_slug) if m not in have][:MARKET_PAGES_PER_STATE]:
-                sub = await _get(client, f"{BASE}/{c_slug}/{s_slug}/{m}")
-                if sub:
-                    records += parse(sub)
     except httpx.HTTPStatusError as exc:
+        _last_error = f"HTTP {exc.response.status_code}"
         _down_until = time.monotonic() + 120
         if hit:
             return hit[1], time.monotonic() - hit[0]
-        raise Unavailable(f"HTTP {exc.response.status_code}") from exc
+        raise Unavailable(_last_error) from exc
     except httpx.HTTPError as exc:
+        _last_error = f"{type(exc).__name__}: {str(exc)[:80]}"
         _down_until = time.monotonic() + 120
         if hit:
             return hit[1], time.monotonic() - hit[0]
-        raise Unavailable(type(exc).__name__) from exc
+        raise Unavailable(_last_error) from exc
+    if not page:
+        return [], 0.0
+    records = parse(page)
+    if deep:
+        have = {slug(r["market"]) for r in records}
+        for m in [m for m in market_links(page, c_slug, s_slug) if m not in have][:MARKET_PAGES_PER_STATE]:
+            try:
+                sub = await _get(client, f"{BASE}/{c_slug}/{s_slug}/{m}")
+            except httpx.HTTPError:
+                break  # keep what we already have; try the rest on the next refresh
+            if sub:
+                records += parse(sub)
     records = _latest_only(records)
     _cache[key] = (time.monotonic(), records)
     return records, 0.0
