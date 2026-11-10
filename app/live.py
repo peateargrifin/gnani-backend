@@ -306,17 +306,19 @@ async def _locate(client, ident):
 
 async def _locate_area(state, district, lat, lon, radius, crop, progress):
     async with httpx.AsyncClient() as client:
-        # 1. Farmer's own state, own district first.
-        records, _ = await feed(client, state, crop, deep=True, near=(lat, lon, radius, district))
-        todo = [m for m in _market_ids(records) if not _registered(m)]
-        todo.sort(key=lambda m: norm_state(m[1]) != norm_state(district or ""))
-        progress["total"] += len(todo)
-        for n, ident in enumerate(todo, 1):
-            await _locate(client, ident)
-            progress["done"] += 1
-            if n % 5 == 0:
-                _ingest(records)
-        _ingest(records)
+        # 1. Farmer's own state: first the quotes already fetched (own district + latest),
+        #    then the wider district-by-district search.
+        for deep in (False, True):
+            records, _ = await feed(client, state, crop, deep=deep, near=(lat, lon, radius, district))
+            todo = [m for m in _market_ids(records) if not _registered(m)]
+            todo.sort(key=lambda m: norm_state(m[1]) != norm_state(district or ""))
+            progress["total"] += len(todo)
+            for n, ident in enumerate(todo, 1):
+                await _locate(client, ident)
+                progress["done"] += 1
+                if n % 3 == 0:
+                    _ingest(records)
+            _ingest(records)
         # 2. Neighbouring states: only districts within reach of the farm.
         for nb in STATE_NEIGHBOURS.get(canonical_state(state), []):
             try:
@@ -361,6 +363,10 @@ async def ensure_area(client, lat, lon, radius, crop, wait_seconds=8.0):
         task.add_done_callback(lambda t, p=progress: p.update(finished=time.monotonic()))
         _jobs[key] = job = (task, progress)
     task, progress = job
+    if os.getenv("VERCEL") and not task.done():
+        # Serverless instances pause between requests, so background work only
+        # advances while a request is open: give each refresh a few seconds.
+        wait_seconds = max(wait_seconds, 4.0)
     if wait_seconds and not task.done():
         await asyncio.wait({task}, timeout=wait_seconds)
     return {**status, "status": "live", "rows_in_feed": len(records), "feed_age_seconds": round(age),
