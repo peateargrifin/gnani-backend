@@ -1,202 +1,53 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mandi Saathi</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#536f43"><title>Mandi Saathi · Your harvest, a better destination</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;450;500;550;600;650;700&family=Manrope:wght@400;500;600;650;700;800&family=Noto+Sans+Devanagari&family=Noto+Sans+Kannada&family=Noto+Sans+Tamil&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#f6f3ea; --card:#fffdf7; --ink:#1f2a1c; --muted:#5f6b58; --line:#e3dccb;
-  --green:#2f7d32; --green-d:#1f5a23; --green-l:#e4f2e1; --amber:#c77d0a; --amber-l:#fdf1d8;
-  --red:#b3261e; --red-l:#fbe3e1; --blue:#1d5fa8;
-  --radius:16px; --shadow:0 2px 0 rgba(31,42,28,.06),0 8px 24px rgba(31,42,28,.06);
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans","Noto Sans Devanagari","Noto Sans Kannada","Noto Sans Tamil",system-ui,sans-serif;line-height:1.45}
-header{background:var(--green-d);color:#fff;padding:14px 16px}
-.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
-header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0}
-.logo{font-weight:800;font-size:1.35rem;letter-spacing:-.01em}
-.logo small{display:block;font-weight:400;font-size:.8rem;opacity:.8}
-.badge{margin-left:auto;font-size:.78rem;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14)}
-.badge.ok{background:#3c9a40}.badge.bad{background:var(--red)}
-main{padding:18px 0 40px}
-.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:18px;align-items:start}
-@media (max-width:860px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
-.card+.card{margin-top:14px}
-h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
-.ask{text-align:center}
-#mic{width:132px;height:132px;border-radius:50%;border:none;background:var(--green);color:#fff;cursor:pointer;
-  display:grid;place-items:center;margin:6px auto 10px;box-shadow:0 6px 0 var(--green-d);transition:transform .08s}
-#mic:active{transform:translateY(3px);box-shadow:0 3px 0 var(--green-d)}
-#mic svg{width:56px;height:56px}
-#mic.rec{background:var(--red);box-shadow:0 6px 0 #7d1a15;animation:pulse 1.2s infinite}
-@keyframes pulse{0%{outline:0 solid rgba(179,38,30,.35)}100%{outline:22px solid rgba(179,38,30,0)}}
-.hint{color:var(--muted);font-size:.9rem;margin:0}
-.timer{font-variant-numeric:tabular-nums;font-weight:600}
-.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-input,select,button{font:inherit}
-input,select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;min-width:0}
-.textask{display:flex;gap:8px;margin-top:14px}
-.textask input{flex:1}
-.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;background:var(--green);color:#fff}
-.btn:hover{background:var(--green-d)}
-.btn.ghost{background:transparent;color:var(--green-d);border:1px solid var(--line)}
-.btn.ghost:hover{background:var(--green-l)}
-.btn.amber{background:var(--amber)}
-.btn:disabled{opacity:.5;cursor:not-allowed}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center}
-.chip{font-size:.82rem;border:1px dashed var(--line);border-radius:99px;padding:5px 10px;background:#fff;cursor:pointer;color:var(--ink)}
-.chip:hover{border-color:var(--green);background:var(--green-l)}
-label.f{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);flex:1;min-width:120px}
-.steps{list-style:none;margin:0;padding:0}
-.steps li{display:flex;gap:10px;padding:7px 0;color:var(--muted);font-size:.92rem;align-items:flex-start}
-.steps li .dot{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.7rem;margin-top:1px}
-.steps li.run{color:var(--ink)} .steps li.run .dot{border-color:var(--amber);border-top-color:transparent;animation:spin .8s linear infinite}
-.steps li.done{color:var(--ink)} .steps li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
-.steps li.err{color:var(--red)} .steps li.err .dot{background:var(--red);border-color:var(--red);color:#fff}
-.steps .meta{display:block;font-size:.8rem;color:var(--muted)}
-@keyframes spin{to{transform:rotate(360deg)}}
-.transcript{background:var(--amber-l);border-radius:12px;padding:10px 12px;font-size:1.05rem;margin:0 0 10px;display:none}
-.best{background:var(--green-l);border:2px solid var(--green);border-radius:var(--radius);padding:16px;display:none}
-.best .k{font-size:.8rem;color:var(--green-d);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
-.best .m{font-size:1.6rem;font-weight:800;margin:2px 0}
-.best .n{font-size:2.2rem;font-weight:800;color:var(--green-d);font-variant-numeric:tabular-nums}
-.best .say{margin:10px 0 0;font-size:1rem}
-.math{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
-.math div{background:#fff;border-radius:10px;padding:8px;font-size:.78rem;color:var(--muted)}
-.math b{display:block;font-size:1rem;color:var(--ink);font-variant-numeric:tabular-nums}
-#map{height:320px;border-radius:12px;border:1px solid var(--line);margin-top:14px;z-index:0}
-table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:12px}
-th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
-th:first-child,td:first-child{text-align:left}
-th{font-size:.75rem;color:var(--muted);font-weight:600}
-tr.top td{font-weight:700;color:var(--green-d)}
-.tbl{overflow-x:auto}
-.flag{font-size:.7rem;color:var(--amber)}
-.note{font-size:.8rem;color:var(--muted);margin:10px 0 0}
-.empty{color:var(--muted);text-align:center;padding:30px 10px}
-.toast{background:var(--red-l);color:var(--red);border-radius:10px;padding:10px 12px;margin-top:10px;display:none;font-size:.9rem}
-.ok-box{background:var(--green-l);color:var(--green-d);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:.9rem;display:none}
-details summary{cursor:pointer;color:var(--muted);font-size:.85rem;margin-top:8px}
-footer{color:var(--muted);font-size:.78rem;text-align:center;padding:0 16px 24px}
-</style>
-</head>
-<body>
-<header><div class="wrap">
-  <div class="logo">🌾 Mandi Saathi<small>Bolo, aur sabse achha mandi bhav paao · Speak, get the best mandi</small></div>
-  <span id="status" class="badge">checking…</span>
-</div></header>
+:root{--bg:#f6f8f3;--card:#fff;--ink:#233525;--muted:#73806f;--line:#e2e8dd;--green:#536f43;--green-d:#334e2c;--green-l:#edf3e6;--amber:#76614b;--amber-l:#f4f0e7;--red:#a43c47;--red-l:#fff0f1;--blue:#507da1;--radius:22px;--shadow:0 8px 28px #273b2205}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--ink);background:var(--bg);font-family:'DM Sans','Noto Sans Devanagari','Noto Sans Kannada','Noto Sans Tamil',sans-serif;font-size:14px;line-height:1.55}button,input,select{font:inherit}button,a,input,select,summary{-webkit-tap-highlight-color:transparent}button,a{touch-action:manipulation}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}a{color:inherit;text-decoration:none}:focus-visible{outline:3px solid #98b8dc;outline-offset:4px}[hidden]{display:none!important}.sidebar{position:fixed;inset:0 auto 0 0;width:226px;padding:34px 22px;background:#eff3e9;border-right:1px solid var(--line);display:flex;flex-direction:column;z-index:20}.brand{display:flex;gap:10px;align-items:center;font:800 20px Manrope,sans-serif;letter-spacing:-1px}.brandmark{width:36px;height:38px;display:grid;place-items:center;color:var(--green);background:#dae5c8;border-radius:12px}.brandmark svg{width:25px}.brand small{display:block;font:500 10px 'DM Sans',sans-serif;letter-spacing:2px;color:#87907f;margin-top:4px}.nav-label{font-size:10px;letter-spacing:1.8px;color:#8a9682;margin:52px 12px 16px}.sidebar nav{display:grid;gap:8px}.navitem{display:flex;gap:13px;align-items:center;padding:12px 14px;border-radius:12px;font-weight:550;color:#77816f}.navitem svg{width:18px;height:18px}.navitem.active{background:var(--green);color:white;box-shadow:0 6px 12px #536f431c}.navitem:hover{background:#dfe8d5;color:var(--green-d)}.navitem.active:hover{background:var(--green)}.side-note{margin-top:auto;border-top:1px solid #dbe3d3;padding-top:22px;font-size:12px;color:#76836d}.side-note b{display:block;color:#4e6442;margin-bottom:5px}.grow{font-size:38px;line-height:1.1;margin:12px 0;color:#8aab6e}.app{margin-left:226px;padding:0 36px 24px;max-width:1700px}.topbar{height:88px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:18px}.breadcrumb{font-size:12px;color:#899180}.breadcrumb span{color:#485541;margin-left:9px}.topright{display:flex;gap:15px;align-items:center}.avatar{display:grid;place-items:center;background:#e2e9d4;color:#547044;border:3px solid white;border-radius:50%;width:38px;height:38px;font-weight:650;font-size:12px}.badge{font-size:11px;color:#788370;display:flex;gap:7px;align-items:center}.badge:before{content:'';width:6px;height:6px;background:#aab59f;border-radius:50%}.badge.ok:before{background:#6a9553}.badge.bad:before{background:#ac7359}.intro{display:flex;justify-content:space-between;align-items:center;padding:30px 0 24px;gap:20px}.eyebrow{text-transform:uppercase;font-size:10px;font-weight:650;letter-spacing:1.8px;color:#81906e;margin:0 0 7px}h1{font:650 clamp(25px,2.8vw,38px)/1.2 Manrope,sans-serif;letter-spacing:-1.5px;margin:0 0 10px}.intro p{margin:0;color:var(--muted);font-size:13px}.datepill{border:1px solid var(--line);border-radius:10px;padding:9px 13px;white-space:nowrap;font-size:11px;color:#6f7e65;background:#fff}.hero{position:relative;overflow:hidden;border-radius:24px;min-height:168px;padding:28px 34px;background:#e3edcf;display:flex;justify-content:space-between;align-items:center;margin-bottom:26px}.hero h2{font:650 26px/1.3 Manrope,sans-serif;letter-spacing:-.8px;margin:0 0 9px;max-width:420px}.hero p{margin:0;font-size:12px;color:#72805f;max-width:390px}.hero-note{display:inline-flex;gap:8px;align-items:center;margin-top:18px;font-size:10px;font-weight:650;letter-spacing:.4px}.hero-note span{width:5px;height:5px;background:#6c8c45;border-radius:50%}.produce{width:280px;max-height:160px;flex:none;margin:-12px 0 -20px}.workspace{display:grid;grid-template-columns:minmax(300px,.85fr) minmax(0,1.4fr);gap:22px;align-items:start}.left,.right{min-width:0;display:grid;gap:20px}.card{border:1px solid var(--line);background:var(--card);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)}.cardtop{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;gap:12px}.cardtop h2,.card>h2{font:650 15px Manrope,sans-serif;margin:0;letter-spacing:-.35px}.cardtop .smalltag{font-size:9px;border:1px solid #e1d9ec;background:#f5f1fa;border-radius:6px;padding:3px 7px;color:#8b73a6}.ask{background:radial-gradient(ellipse at 50% 43%,#eee7f7a8,transparent 64%),#fff;text-align:center}.ask .cardtop{text-align:left}.ask h3{font:600 20px Manrope,sans-serif;letter-spacing:-.7px;margin:13px 0 6px}.subtle{font-size:12px;color:var(--muted);margin:0}.mic-orbit{position:relative;display:grid;place-items:center;margin:24px auto 14px;width:142px;height:142px;border:1px solid #e7e0ee;border-radius:50%}.mic-orbit:before{content:'';position:absolute;inset:11px;border-radius:50%;border:1px dashed #dfd5e8;pointer-events:none}#mic{width:98px;height:98px;display:grid;place-items:center;border:7px solid #edf2e8;border-radius:50%;background:var(--green);color:#fff;box-shadow:0 6px 18px #4f6c432a;transition:.2s}#mic:hover{background:#405d32;transform:scale(1.04)}#mic svg{width:30px;height:30px}#mic.rec{background:#ad4d57;animation:pulse 1s infinite}@keyframes pulse{50%{box-shadow:0 0 0 14px #ad4d5712}}.hint{font-size:10px;color:#849079;margin:5px 0 22px}.textask{display:flex;align-items:center;background:#fafbf8;border:1px solid var(--line);border-radius:12px;padding:5px;margin-top:16px}.textask input{flex:1;width:0;background:transparent;border:0;font-size:11px;padding:9px 10px}.textask button{width:34px;height:34px;padding:0;border-radius:9px}.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px;justify-content:center}.chip{font-size:10px;line-height:1.5;background:#fff;border:1px solid var(--line);border-radius:8px;padding:6px 9px;color:#7a826f}.chip:hover{border-color:#9caf87;background:#f2f6eb}.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}label.f{display:flex;flex-direction:column;gap:7px;flex:1;min-width:100px;font-size:10px;font-weight:550;color:#77836d}input,select{min-width:0;max-width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:#fafbf8;color:#3e5036;font-size:12px}input::placeholder{color:#9aa38e}.btn{background:var(--green);border:1px solid transparent;color:white;border-radius:10px;padding:11px 16px;font-size:12px;font-weight:550;transition:background .2s}.btn:hover{background:var(--green-d)}.btn.ghost{background:white;color:#587148;border-color:var(--line)}.btn.ghost:hover{background:#eef3e8}.btn.amber{background:#536f43}.full{width:100%;margin-top:18px;display:flex;justify-content:center;gap:12px}.micro{font-size:10px;color:#86907c}.settings{margin-top:16px;border-top:1px solid #eef1ea;padding-top:12px}summary{cursor:pointer;color:#7c8972;font-size:10px}.steps{list-style:none;padding:0;margin:0;display:grid;gap:13px}.steps li{display:flex;gap:10px;color:#8c9584;font-size:11px;align-items:start}.dot{height:20px;width:20px;border:1px solid #dfe5d7;border-radius:50%;display:grid;place-items:center;font-size:9px;flex:none}.meta{display:block;font-size:10px;line-height:1.5;color:#8a9480;margin-top:2px}.steps .done{color:#4e6840}.done .dot{background:#eaf1e1;border-color:#cddcba}.run .dot{border-color:#9c87b1;animation:pulse 1s infinite}.steps .err{color:var(--red)}.mapcard{padding:0;overflow:hidden;background:#f9fcff}.maphead{display:flex;justify-content:space-between;align-items:center;padding:22px 24px 0;gap:10px}.maphead h2{margin:0;font:650 15px Manrope,sans-serif}.maphead p{font-size:10px;color:#8b9686;margin:5px 0 0}.maplabel{background:#e8f1f8;color:#6386a4;padding:5px 9px;border-radius:6px;font-size:9px}#map{height:335px;margin:18px 14px 0;border:1px solid #dae5e7;border-radius:15px;z-index:0;background:#e7eff0}.maplegend{padding:14px 24px;display:flex;gap:18px;font-size:10px;color:#809076}.maplegend i{display:inline-block;width:7px;height:7px;background:#536f43;border-radius:50%;margin-right:6px}.maplegend .farm{background:#72a0c6}.maplegend .other{background:#aea2bf}.resultcard{position:relative}.empty{padding:25px 20px 32px;text-align:center;color:#93a086;font-size:12px}.empty-icon{margin:0 auto 13px;border:1px solid var(--line);border-radius:18px;display:grid;place-items:center;width:48px;height:48px;color:#8da477;font-size:24px}.best{display:none}.best .k{font-size:9px;color:#73925c;text-transform:uppercase;letter-spacing:1.4px}.best .m{font:650 23px Manrope,sans-serif;margin:8px 0;color:#304c27}.best .n{font:650 38px Manrope,sans-serif;letter-spacing:-1.7px;color:#4d703b}.netlabel{font-size:10px;color:#91a381;margin-bottom:18px}.math{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:12px;padding:14px 0;margin:14px 0}.math div{padding:0 14px;font-size:9px;color:#849378;border-right:1px solid var(--line)}.math div:last-child{border:0}.math b{display:block;margin-top:3px;font-size:15px;font-weight:550;color:#435b36}.say{border-left:2px solid #d3c6e5;padding-left:12px;font-size:12px;color:#7a7482;line-height:1.7}.note{font-size:10px;color:#87937f;margin:12px 0 0}.transcript{display:none;border-radius:10px;background:#f4f0f9;padding:12px;font-size:12px;color:#7e6a91;margin-top:0}.toast{display:none;background:var(--red-l);color:var(--red);padding:12px;border-radius:10px;font-size:11px;margin:12px 0}.ok-box{display:none;background:#eff6e8;color:#4f713c;padding:14px;border-radius:10px;font-size:12px;margin-top:12px}.tablecard{margin-top:22px;padding-bottom:12px}.tbl{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:12px;white-space:nowrap}th,td{text-align:right;border-bottom:1px solid #eef1e8;padding:17px 14px;font-variant-numeric:tabular-nums}th{font-size:9px;text-transform:uppercase;letter-spacing:.7px;color:#96a08d;font-weight:500}th:first-child,td:first-child{text-align:left}tr.top{background:#f0f5e8}tr.top td{color:#4c6c39}.flag{font-size:8px;display:inline-block;background:#e9eee1;border-radius:4px;padding:2px 5px;margin-left:5px;color:#82936e}.tablecard .cardtop{margin-bottom:7px}.count{font-size:10px;color:#87977b}.footer{display:flex;justify-content:space-between;padding:22px 0 0;font-size:9px;color:#a0a895;gap:20px}.footer strong{font-weight:500;color:#718561}.leaflet-container{font-family:inherit}.leaflet-tooltip{font-size:10px;border:0;border-radius:7px;box-shadow:0 2px 10px #23352520;padding:7px 10px}.leaflet-control-attribution{font-size:8px!important}dialog{border:1px solid var(--line);border-radius:22px;max-width:420px;width:calc(100% - 32px);padding:28px;color:var(--ink);box-shadow:0 20px 70px #23352530}dialog::backdrop{background:#26362266;backdrop-filter:blur(3px)}dialog h2{font:650 20px Manrope}dialog p{font-size:12px;color:var(--muted)}dialog label{margin-top:15px}.dialog-actions{display:flex;justify-content:end;gap:8px;margin-top:22px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}@media(min-width:1500px){.app{padding-left:52px;padding-right:52px}.workspace{grid-template-columns:minmax(360px,.9fr) minmax(0,1.5fr)}#map{height:365px}}@media(max-width:1150px){.sidebar{width:184px;padding:30px 14px}.app{margin-left:184px;padding-left:24px;padding-right:24px}.brand{font-size:17px}.workspace{grid-template-columns:minmax(270px,1fr) minmax(0,1.2fr)}.card{padding:20px}.produce{width:220px}.hero{padding:25px}.hero h2{font-size:23px}}@media(max-width:900px){.sidebar{width:76px;padding:26px 12px}.brand>span,.nav-label,.navitem span,.side-note{display:none}.brand{justify-content:center}.navitem{justify-content:center;padding:14px 10px}.sidebar nav{margin-top:40px}.app{margin-left:76px;padding:0 22px 20px}.workspace{grid-template-columns:1fr 1.1fr}.hero p{max-width:310px}.produce{width:180px}.hero h2{font-size:21px}.math{gap:0}.math div{padding:0 10px}.math b{font-size:13px}}@media(max-width:720px){.sidebar{position:static;width:auto;height:65px;flex-direction:row;align-items:center;padding:12px 20px;border-right:0;border-bottom:1px solid var(--line)}.brand>span{display:block}.brand{font-size:18px}.brand small{display:none}.sidebar nav{margin:0 0 0 auto;display:flex;gap:5px}.navitem{padding:9px}.sidebar nav .navitem:last-child{display:none}.app{margin:0;padding:0 16px 20px}.topbar{height:57px}.avatar{display:none}.intro{padding:24px 0 20px}.datepill{display:none}.hero{min-height:155px;padding:22px}.hero h2{font-size:21px;max-width:250px}.hero p{max-width:230px;font-size:11px}.hero-note{font-size:9px}.produce{width:130px;margin-right:-20px}.workspace{grid-template-columns:1fr}.right{gap:18px}.ask{padding-bottom:22px}.mic-orbit{margin-top:18px;margin-bottom:10px}.footer{display:block;line-height:1.8}.math b{font-size:17px}.tablecard{padding:20px 10px}.tablecard .cardtop{padding:0 10px}.topright{gap:5px}.card{border-radius:18px}h1{letter-spacing:-1px}.cardtop h2{font-size:15px}.intro p{font-size:12px}.side-note{display:none}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 
-<main class="wrap">
-<div class="grid">
-  <section>
-    <div class="card ask">
-      <h2>1 · Ask in your language</h2>
-      <button id="mic" aria-label="Tap to speak">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z"/></svg>
-      </button>
-      <p class="hint" id="micHint">Tap and speak · बोलने के लिए दबाएँ · ಮಾತನಾಡಲು ಒತ್ತಿ</p>
-      <div class="textask">
-        <input id="q" placeholder="Or type: 500 kilo aloo kahan bechu?" aria-label="Type your question">
-        <button class="btn" id="askBtn">Ask</button>
-      </div>
-      <div class="chips" id="examples">
-        <button class="chip">मेरे 500 किलो आलू कहाँ बेचूँ?</button>
-        <button class="chip">5 quintal pyaz ka best bhav kahan milega?</button>
-        <button class="chip">ನನ್ನ 800 ಕೆಜಿ ಟೊಮೆಟೊ ಎಲ್ಲಿ ಮಾರಬೇಕು?</button>
-        <button class="chip">Where can I sell 2 tons of tomato?</button>
-      </div>
-    </div>
+/* readability pass: nothing under 11px */
+body{font-size:15px}.hint,.micro,.meta,.note,.count,.maphead p,.maplegend,.hero-note,summary,.subtle,.netlabel,.side-note{font-size:12.5px}
+label.f{font-size:12px}input,select,.btn{font-size:14px}.chip{font-size:13px}.textask input{font-size:14px}
+th{font-size:11.5px}td{font-size:14px}.flag{font-size:10.5px}.best .k,.eyebrow,.nav-label,.maplabel,.cardtop .smalltag{font-size:11px}
+.math div{font-size:12px}.math b{font-size:17px}.steps li{font-size:13.5px}.dot{font-size:11px;width:22px;height:22px}.say{font-size:14px}
+.transcript{font-size:15px}.toast,.ok-box{font-size:13.5px}.hero p,.intro p{font-size:14px}.breadcrumb,.badge{font-size:12.5px}
+.livebar{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#5f7a4e;margin:-6px 0 14px}
+.livebar i{flex:none;width:8px;height:8px;border-radius:50%;background:#6a9553;animation:blink 2s infinite}
+.livebar.paused i{background:#aab59f;animation:none}@keyframes blink{50%{box-shadow:0 0 0 6px #6a955300}0%{box-shadow:0 0 0 0 #6a955366}}
+tr.changed td{animation:flash 1.6s}@keyframes flash{from{background:#fff4c9}}
 
-    <div class="card">
-      <h2>2 · Your farm and details</h2>
-      <div class="row">
-        <label class="f">Crop
-          <select id="crop"><option value="">—</option><option value="potato">Potato · आलू</option><option value="onion">Onion · प्याज़</option><option value="tomato">Tomato · टमाटर</option><option value="sugarcane">Sugarcane · गन्ना</option></select>
-        </label>
-        <label class="f">Quantity (kg)<input id="qty" type="number" min="1" step="1" placeholder="500"></label>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <label class="f">Farm location
-          <select id="place">
-            <option value="gps">📍 My current location</option>
-            <option value="27.10,78.15">Village near Agra, UP (demo)</option>
-            <option value="13.25,78.05">Village near Kolar, Karnataka (demo)</option>
-          </select>
-          <span id="locInfo" style="font-size:.78rem">Asking for location permission…</span>
-        </label>
-        <label class="f">Reply language
-          <select id="lang"><option value="auto">Same as farmer</option></select>
-        </label>
-      </div>
-      <details>
-        <summary>Transport cost settings</summary>
-        <div class="row" style="margin-top:8px">
-          <label class="f">₹ per km<input id="rate" type="number" min="0" value="25"></label>
-          <label class="f">Base fee ₹<input id="base" type="number" min="0" value="300"></label>
-          <label class="f">Search radius km<input id="radius" type="number" min="10" max="1000" value="150"></label>
-        </div>
-      </details>
-      <button class="btn" id="go" style="width:100%;margin-top:12px">Find best mandi</button>
-    </div>
-
-    <div class="card">
-      <h2>Agent steps</h2>
-      <ol class="steps" id="steps">
-        <li data-s="hear"><span class="dot">1</span><span>Listen · Gnani Prisma v3.0<span class="meta"></span></span></li>
-        <li data-s="intent"><span class="dot">2</span><span>Understand crop and quantity<span class="meta"></span></span></li>
-        <li data-s="prices"><span class="dot">3</span><span>Check nearby mandi prices<span class="meta"></span></span></li>
-        <li data-s="route"><span class="dot">4</span><span>Road distance and freight cost<span class="meta"></span></span></li>
-        <li data-s="speak"><span class="dot">5</span><span>Speak the answer · Gnani Timbre v3.0<span class="meta"></span></span></li>
-      </ol>
-    </div>
-  </section>
-
-  <section>
-    <div class="card">
-      <h2>Answer</h2>
-      <p class="transcript" id="transcript"></p>
-      <div class="empty" id="empty">Ask a question to compare mandis near you.</div>
-      <div class="best" id="best">
-        <div class="k">Most profitable mandi</div>
-        <div class="m" id="bestName"></div>
-        <div class="n" id="bestNet"></div>
-        <div class="math">
-          <div>Sale value<b id="bGross"></b></div>
-          <div>Transport<b id="bFreight"></b></div>
-          <div>Distance<b id="bDist"></b></div>
-        </div>
-        <p class="note" id="bRoute" style="color:var(--green-d)"></p>
-        <p class="say" id="say"></p>
-        <div class="row" style="margin-top:10px">
-          <button class="btn ghost" id="replay">🔊 Play again</button>
-          <button class="btn amber" id="truck">🚚 Request a truck</button>
-        </div>
-        <div class="ok-box" id="truckOk"></div>
-      </div>
-      <div class="toast" id="err"></div>
-      <audio id="player" hidden></audio>
-      <div id="map"></div>
-      <div class="tbl"><table id="tbl" hidden>
-        <thead><tr><th>Mandi</th><th>₹/quintal</th><th>Shortest km</th><th>Sale value<br><small>price × qty</small></th><th>Transport</th><th>You keep</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
-      <p class="note" id="disc"></p>
-    </div>
-  </section>
-</div>
-</main>
-<footer>Live prices: Government of India AGMARKNET daily mandi prices via data.gov.in (₹/quintal, modal price). Mandi locations: © OpenStreetMap contributors (Nominatim). Prices marked <b>demo</b> are synthetic. A truck request goes to a dispatcher for manual matching; no vehicle is booked automatically. Voice by Gnani Prisma v3.0 (speech-to-text) and Timbre v3.0 (text-to-speech).</footer>
-
+.chat{display:grid;gap:8px;margin-top:16px;text-align:left}.bubble{max-width:88%;padding:10px 13px;border-radius:14px;font-size:14px;line-height:1.45}
+.bubble.ai{background:#f4f0f9;color:#4f3f63;border-bottom-left-radius:4px}.bubble.farmer{background:#edf3e6;color:#334e2c;justify-self:end;border-bottom-right-radius:4px}
+.bubble small{display:block;font-size:11px;opacity:.7;margin-bottom:2px}.quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+.quick .chip{font-size:14px;padding:8px 14px;border-color:#b9c9a6;color:#334e2c}.listening{font-size:12.5px;color:#ad4d57;margin-top:6px}
+.trip{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;background:#f7faf3;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px;font-size:14px}
+.trip b{color:#334e2c}.trip .arrow{color:#9caf87;font-size:18px}.pill{background:#e8f1f8;color:#3d6482;border-radius:999px;padding:3px 10px;font-size:12.5px}
+.pill.warn{background:#fdf1d8;color:#8a5a00}#mtx td{text-align:right}#mtx td:first-child{text-align:left;white-space:normal;min-width:170px}
+#mtx td.na{color:#b4bcaa}#mtx td.colbest b{color:#4c6c39}#mtx td.winner{background:#e4f0d8;outline:2px solid #6d8b56;outline-offset:-2px}
+#mtx small{display:block;color:var(--muted);font-weight:400;font-size:11.5px}
+</style></head><body>
+<aside class="sidebar"><a class="brand" href="#" aria-label="Mandi Saathi home"><div class="brandmark"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M16 28V8M16 20C5 20 4 12 4 12c10-1 12 8 12 8Zm0-5S16 4 27 3c0 9-11 12-11 12Z"/></svg></div><span>Mandi Saathi<small>GROW TOGETHER</small></span></a><p class="nav-label">YOUR WORKSPACE</p><nav aria-label="Main navigation"><a class="navitem active" href="#assistant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Mandi assistant</span></a><a class="navitem" href="#market-map"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m3 5 6-2 6 2 6-2v16l-6 2-6-2-6 2ZM9 3v16m6-14v16"/></svg><span>Explore mandis</span></a><a class="navitem" href="#comparisons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 20V10m8 10V4m8 16v-7M2 20h20"/></svg><span>Compare prices</span></a></nav><div class="side-note"><div class="grow">❧</div><b>A better day at the mandi.</b>Your language. Your harvest.<br>A little more clarity.</div></aside>
+<div class="app"><header class="topbar"><div class="breadcrumb">Your workspace <span>/ &nbsp; Mandi assistant</span></div><div class="topright"><span id="status" class="badge" role="status">Connecting…</span><div class="avatar" aria-hidden="true">MS</div></div></header>
+<main id="assistant"><div class="intro"><div><p class="eyebrow">YOUR HARVEST, A BETTER DESTINATION</p><h1>Let’s find your best mandi.</h1><p>A familiar voice. A clearer price. More from every harvest.</p></div><div class="datepill" id="today"></div></div>
+<section class="hero" aria-label="Welcome"><div><h2>Good crops deserve<br>better returns.</h2><p>Compare nearby mandis, understand transport costs, and decide where to sell. Just ask.</p><div class="hero-note"><span></span> Made for the way India speaks</div></div>
+<svg class="produce" viewBox="0 0 330 210" role="img" aria-label="Illustration of fresh produce in a harvest crate"><ellipse cx="178" cy="188" rx="125" ry="10" fill="#cbd9b3"/><g fill="none" stroke="#bed29e" stroke-width="1"><path d="M285 170c-14-80 17-106 17-106m-18 66 27-26m-29 8-17-22M38 163c10-41-12-67-12-67m15 44-19-15"/></g><path d="M116 124c-14-38-4-59 9-84 12 13 11 28 5 42 20-25 33-26 46-20-10 20-24 28-46 33 9 0 24 3 28 12l-29 20" fill="#759153"/><path d="M195 132c-7-41 4-68 31-91 6 21-7 42-22 54 22-21 39-25 57-18-11 21-29 32-52 34l5 29" fill="#486b3d"/><path d="M179 130c-22-37-42-49-52-38-15 17 8 44 24 55" fill="#d7a55e"/><path d="m147 101 14 4m-4 9 13 4" fill="none" stroke="#bd8746" stroke-width="2"/><ellipse cx="110" cy="140" rx="32" ry="27" fill="#c6a06f" transform="rotate(-20 110 140)"/><g fill="#aa865a"><circle cx="96" cy="138" r="2"/><circle cx="119" cy="129" r="2"/><circle cx="115" cy="151" r="2"/></g><path d="M219 127c-20-17-46-5-43 19 2 28 43 32 49 9 9-5 8-20-6-28Z" fill="#c36a53"/><path d="m201 124 0-13m-1 14-13-6 9 12 12-3 10-11-15 6" fill="#4e743e"/><path d="M166 130c-20-16-34-4-35 14-4 19 18 27 30 22 26-9 23-31 5-36" fill="#a196b4"/><path d="m154 131 5-17 4 17" fill="#759153"/><path d="M68 142h220l-15 44H82Z" fill="#b8c88b"/><path d="M72 148h212M78 164h199M82 180h190" fill="none" stroke="#e3edcf" stroke-width="4"/><path d="m92 145 7 40m31-40 3 40m33-40v40m34-40-4 40m36-40-6 40m36-40-9 40" stroke="#a5b77a" stroke-width="3"/><rect x="59" y="139" width="236" height="10" rx="5" fill="#c9d7a2"/></svg></section>
+<div class="workspace"><div class="left"><section class="card ask"><div class="cardtop"><h2>Your mandi companion</h2><span class="smalltag">VOICE ASSISTANT</span></div><h3>Boliye, kya bechna hai?</h3><p class="subtle">Tell me about your harvest.</p><div class="mic-orbit"><button id="mic" aria-label="Start or stop recording"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2m-7 9v3m-4 0h8"/></svg></button></div><p class="hint" id="micHint" aria-live="polite">Tap to speak · बोलने के लिए दबाएँ</p><div class="textask"><input id="q" placeholder="500 kilo aloo kahan bechu?" aria-label="Type your question"><button class="btn" id="askBtn" aria-label="Send question">↗</button></div><div class="chips" id="examples"><button class="chip">मेरे 500 किलो आलू कहाँ बेचूँ?</button><button class="chip">5 quintal pyaz ka best bhav kahan milega?</button><button class="chip">ನನ್ನ 800 ಕೆಜಿ ಟೊಮೆಟೊ ಎಲ್ಲಿ ಮಾರಬೇಕು?</button><button class="chip">Where can I sell 2 tons of wheat?</button></div><div class="chat" id="chat" hidden></div><div class="quick" id="quick" hidden></div><p class="listening" id="listening" hidden></p></section>
+<section class="card"><div class="cardtop"><h2>Your harvest details</h2><span class="micro">01 / DETAILS</span></div><div class="row"><label class="f">CROP<select id="crop"><option value="">Choose your crop</option></select></label><label class="f">QUANTITY (KG)<input id="qty" type="number" min="1" step="1" placeholder="e.g. 500"></label></div><div class="row" style="margin-top:15px"><label class="f">FARM LOCATION<select id="place"><option value="gps">📍 My current location</option><option value="typed">✏️ Type my village or town</option></select><span class="textask" id="placeBox" hidden style="margin-top:4px"><input id="placeQuery" placeholder="e.g. Fatehabad, Agra" aria-label="Village or town"><button class="btn" id="placeBtn" type="button" aria-label="Find place">↗</button></span><span id="locInfo" class="micro">Asking for location permission…</span></label></div><div class="row" style="margin-top:15px"><label class="f">REPLY LANGUAGE<select id="lang"><option value="auto">Same as my question</option></select></label></div><div class="row" style="margin-top:15px"><label class="f">TRANSPORT<select id="ownv"><option value="auto">No vehicle: compare transporters</option><option value="bike">My own bike</option><option value="car">My own car</option><option value="tractor">My own tractor-trolley</option><option value="three_wheeler">My own 3-wheeler tempo</option><option value="tata_ace">My own Tata Ace / chhota haathi</option><option value="pickup">My own pickup / Bolero</option><option value="truck">My own truck</option></select></label></div>
+<details class="settings"><summary>Search radius</summary><div class="row" style="margin-top:12px"><label class="f">Radius (km)<input id="radius" type="number" min="10" max="1000" value="150"></label></div></details><button class="btn full" id="go"><span>Find my best mandi</span><span>↗</span></button></section>
+<details class="card" open><summary>How your answer comes together · agent steps</summary><ol class="steps" id="steps" style="margin-top:18px"><li data-s="hear"><span class="dot">1</span><span>Listen to your question<span class="meta"></span></span></li><li data-s="intent"><span class="dot">2</span><span>Understand your harvest<span class="meta"></span></span></li><li data-s="prices"><span class="dot">3</span><span>Compare nearby mandi quotes<span class="meta"></span></span></li><li data-s="route"><span class="dot">4</span><span>Shortest road route and transport cost<span class="meta"></span></span></li><li data-s="speak"><span class="dot">5</span><span>Read your answer aloud<span class="meta"></span></span></li></ol></details></div>
+<div class="right"><section class="card mapcard" id="market-map"><div class="maphead"><div><h2>Your nearby mandis</h2><p>Find the right destination for your harvest.</p></div><span class="maplabel">MARKET MAP</span></div><div id="map" aria-label="Map of your farm, nearby mandis and route"></div><div class="maplegend"><span><i class="farm"></i>Your farm</span><span><i></i>Best return</span><span><i class="other"></i>Other mandis</span><span id="trafficLegend" hidden>🚦 Live traffic</span></div></section><section class="card resultcard" aria-live="polite"><div class="cardtop"><h2>Your mandi recommendation</h2><span class="micro" id="sourceTag">READY WHEN YOU ARE</span></div><div class="livebar paused" id="livebar" hidden><i></i><span id="liveText">Live</span></div><p class="transcript" id="transcript"></p><div class="empty" id="empty"><div class="empty-icon">❧</div><span id="emptyMsg">A better return starts with a question.<br><span class="micro">Speak, type, or fill in your harvest details.</span></span></div><div class="best" id="best"><div class="k">BEST ESTIMATED RETURN</div><div class="m" id="bestName"></div><div class="n" id="bestNet"></div><div class="netlabel">estimated amount after transport</div><div class="math"><div>Sale value<b id="bGross"></b></div><div>Transport estimate<b id="bFreight"></b></div><div>Travel distance<b id="bDist"></b></div></div><p class="note" id="bRoute"></p><p class="say" id="say"></p><div class="row" style="margin-top:18px"><button class="btn ghost" id="replay" disabled>▷ Listen to answer</button><button class="btn amber" id="truck">Request transport ↗</button></div><div class="ok-box" id="truckOk" role="status"></div></div><div class="toast" id="err" role="alert"></div><audio id="player" hidden></audio><p class="note" id="disc"></p></section></div></div>
+<section class="card tablecard" id="comparisons"><div class="cardtop"><h2>A clearer view of your options</h2><span class="count" id="resultCount">Compare sale value, travel and net return</span></div><div class="tbl"><table id="tbl" hidden><caption class="sr-only">Mandis ranked by estimated net return</caption><thead><tr><th>Mandi</th><th>₹ / quintal</th><th>Distance · km</th><th>Sale value</th><th>Transport (best option)</th><th>Net return</th></tr></thead><tbody></tbody></table></div></section>
+<section class="card tablecard" id="transportCard" hidden><div class="cardtop"><h2>Transport options · pickup to drop</h2><span class="count" id="trSub"></span></div><div class="trip" id="trip"></div><div class="tbl"><table id="mtx"><thead></thead><tbody></tbody></table></div><p class="note" id="trNote"></p></section>
+</main><footer class="footer"><span><strong>Mandi Saathi</strong> · Built for a better harvest journey.</span><span>Prices: Govt of India AGMARKNET daily quotes via data.gov.in or commodityonline.com (₹/quintal) · Mandi locations & roads © OpenStreetMap, OSRM · Voice: Gnani Prisma & Timbre v3.0</span></footer></div>
+<dialog id="dispatchDialog"><form id="dispatchForm"><h2>Arrange your next step.</h2><p id="dispatchSummary"></p><label class="f">PHONE OR CONTACT NAME<input id="contact" required minlength="5" maxlength="100" placeholder="Name or contact for the dispatcher"></label><label class="f">PICKUP NOTE (OPTIONAL)<input id="pickupNote" maxlength="500" placeholder="Village, preferred time, or instructions"></label><p>Your request goes to a dispatcher for manual matching. A vehicle is not booked yet.</p><div class="dialog-actions"><button class="btn ghost" type="button" id="cancelDispatch">Cancel</button><button class="btn" type="submit" id="sendDispatch">Send request ↗</button></div><p id="dispatchError" role="alert"></p></form></dialog>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 const $ = s => document.querySelector(s);
 const API = "";
+$("#today").textContent = new Date().toLocaleDateString("en-IN", {day:"numeric",month:"short",year:"numeric"});
+const esc = value => String(value ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let comparing = false;
+
 const state = { lang: "en-IN", lastResult: null, audioUrl: null, map: null, layer: null };
 const fmt = n => "₹" + Math.round(n).toLocaleString("en-IN");
 
@@ -242,10 +93,21 @@ function replyLang(detected) {
     b.className = "badge " + (h.gnani_configured ? "ok" : "bad");
     const langs = await (await api("/v1/languages")).json();
     for (const [code, name] of Object.entries(langs)) $("#lang").add(new Option(name, code));
+    const crops = await (await api("/v1/commodities")).json();
+    for (const c of crops) $("#crop").add(new Option(`${c.en} · ${c.hi}`, c.id));
+    state.catalog = await (await api("/v1/transport/catalog")).json();
   } catch (e) { $("#status").textContent = "API offline"; $("#status").className = "badge bad"; }
   state.map = L.map("map", { zoomControl: true }).setView([27.2, 78.2], 8);
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(state.map);
+  if (state.catalog && state.catalog.live_traffic) {
+    L.tileLayer("/v1/traffic/{z}/{x}/{y}.png", { maxZoom: 18, opacity: 0.75, attribution: "Traffic © TomTom" }).addTo(state.map);
+    $("#trafficLegend").hidden = false;
+  }
   state.layer = L.layerGroup().addTo(state.map);
+  try {
+    const markets = await (await api("/v1/markets")).json();
+    markets.slice(0, 400).forEach(m => L.circleMarker([m.latitude,m.longitude], {radius:5,color:"#a698b9",fillOpacity:.7}).bindTooltip(esc(m.name)).addTo(state.layer));
+  } catch {}
 })();
 
 // ---------- location ----------
@@ -261,22 +123,40 @@ function requestGps() {
 }
 function showLoc() {
   const info = $("#locInfo");
-  if ($("#place").value !== "gps") { info.textContent = "Demo village"; return; }
+  if ($("#place").value === "typed") { info.textContent = state.typedLoc ? `📍 ${state.typedLoc.label}` : "Type your village or town and press ↗"; return; }
+  if (state.placeName && state.gps) { info.textContent = `📍 ${state.placeName} · ±${Math.round(state.gps.acc)} m`; return; }
   info.textContent = state.gps
     ? `📍 ${state.gps.lat.toFixed(4)}, ${state.gps.lon.toFixed(4)} (±${Math.round(state.gps.acc)} m)`
     : "Location not shared yet";
 }
 async function getLocation() {
-  const v = $("#place").value;
-  if (v !== "gps") { const [lat, lon] = v.split(",").map(Number); return { lat, lon }; }
+  if ($("#place").value === "typed") {
+    if (!state.typedLoc) await findTypedPlace();
+    if (!state.typedLoc) throw new Error("Type your village or town first");
+    return state.typedLoc;
+  }
   return state.gps || await requestGps();
 }
-// Ask for permission as soon as the page opens; fall back to a demo village if refused.
-requestGps().then(showLoc).catch(e => {
-  $("#place").value = "27.10,78.15";
-  $("#locInfo").textContent = `${e.message}. Using demo village.`;
-});
+async function findTypedPlace() {
+  const q = $("#placeQuery").value.trim();
+  if (!q) return;
+  $("#locInfo").textContent = "Finding place…";
+  try {
+    state.typedLoc = await (await api("/v1/locate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query: q }) })).json();
+  } catch (e) { state.typedLoc = null; $("#locInfo").textContent = "Place not found. Try a nearby town or district name."; return; }
+  showLoc();
+}
+function useTypedPlace(msg) {
+  $("#place").value = "typed"; $("#placeBox").hidden = false;
+  $("#locInfo").textContent = msg; $("#placeQuery").focus();
+}
+$("#placeBtn").onclick = findTypedPlace;
+$("#placeQuery").addEventListener("keydown", e => { if (e.key === "Enter") findTypedPlace(); });
+$("#placeQuery").addEventListener("input", () => { state.typedLoc = null; });
+// Ask for location as soon as the page opens; if refused, let the farmer type a place.
+requestGps().then(showLoc).catch(e => useTypedPlace(`${e.message}. Type your village or town instead.`));
 $("#place").onchange = () => {
+  $("#placeBox").hidden = $("#place").value !== "typed";
   if ($("#place").value === "gps" && !state.gps) {
     $("#locInfo").textContent = "Asking for location permission…";
     requestGps().then(showLoc).catch(e => { $("#locInfo").textContent = e.message + ". Allow location in the browser address bar."; });
@@ -284,25 +164,32 @@ $("#place").onchange = () => {
 };
 
 // ---------- WAV recorder (16 kHz mono, which Prisma accepts) ----------
-const rec = { ctx: null, stream: null, node: null, chunks: [], timer: null, t0: 0 };
-async function startRec() {
+const rec = { ctx: null, stream: null, node: null, chunks: [], timer: null, t0: 0, auto: false, spoke: false, lastLoud: 0 };
+async function startRec(auto = false) {
+  rec.auto = auto; rec.spoke = false; rec.lastLoud = Date.now();
   rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
   rec.ctx = new (window.AudioContext || window.webkitAudioContext)();
   const src = rec.ctx.createMediaStreamSource(rec.stream);
   rec.node = rec.ctx.createScriptProcessor(4096, 1, 1);
   rec.chunks = [];
-  rec.node.onaudioprocess = e => rec.chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  rec.node.onaudioprocess = e => {
+    const d = e.inputBuffer.getChannelData(0); rec.chunks.push(new Float32Array(d));
+    let sum = 0; for (let i = 0; i < d.length; i += 8) sum += d[i] * d[i];
+    if (Math.sqrt(sum / (d.length / 8)) > 0.025) { rec.spoke = true; rec.lastLoud = Date.now(); }
+  };
   src.connect(rec.node); rec.node.connect(rec.ctx.destination);
   rec.t0 = Date.now();
   $("#mic").classList.add("rec");
   rec.timer = setInterval(() => {
     const s = Math.floor((Date.now() - rec.t0) / 1000);
     $("#micHint").innerHTML = `<span class="timer">● ${s}s</span> listening… tap again to stop`;
-    if (s >= 25) stopRec();
+    if (rec.auto && rec.spoke && Date.now() - rec.lastLoud > 1300) { const wav = stopRec(); if (wav) handleAudio(wav); return; }
+    if (rec.auto && !rec.spoke && s >= 7) { stopRec(); $("#listening").textContent = "Didn't hear anything. Tap an answer or the mic."; return; }
+    if (s >= 25) { const wav = stopRec(); if (wav) handleAudio(wav); }
   }, 250);
 }
 function stopRec() {
-  clearInterval(rec.timer);
+  clearInterval(rec.timer); $("#listening").hidden = true;
   $("#mic").classList.remove("rec");
   $("#micHint").textContent = "Tap and speak · बोलने के लिए दबाएँ · ಮಾತನಾಡಲು ಒತ್ತಿ";
   if (!rec.ctx) return null;
@@ -338,7 +225,8 @@ $("#mic").onclick = async () => {
     if (wav) await handleAudio(wav);
     return;
   }
-  try { resetSteps(); step("hear", "run", "Recording…"); await startRec(); }
+  state.voiceMode = true;
+  try { if (!state.awaiting) resetSteps(); step("hear", "run", "Recording…"); await startRec(); }
   catch (e) { step("hear", "err", "Microphone not available"); showErr("Microphone blocked. Allow mic access, or type your question."); }
 };
 
@@ -351,11 +239,18 @@ async function handleAudio(wav) {
     const r = await (await api("/v1/voice/transcribe", { method: "POST", body: fd })).json();
     step("hear", "done", `${r.model || "prisma-v3.0"} · ${r.language || "auto"} · ${((performance.now() - t) / 1000).toFixed(1)}s`);
     const lang = (r.language && r.language in { "en-IN": 1, "hi-IN": 1, "kn-IN": 1, "ta-IN": 1, "te-IN": 1, "mr-IN": 1, "bn-IN": 1, "gu-IN": 1, "pa-IN": 1, "ml-IN": 1 }) ? r.language : guessLang(r.transcript);
-    await understood(r.transcript, r.intent, lang);
+    if (state.awaiting) await onReply(r.reply, r.transcript);
+    else await understood(r.transcript, r.intent, lang);
   } catch (e) { step("hear", "err", e.message); showErr("Could not transcribe: " + e.message); }
 }
 async function askText(text) {
   if (!text.trim()) return;
+  if (state.awaiting) {
+    $("#q").value = "";
+    const r = await (await api("/v1/intent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) })).json();
+    return onReply(r.reply, text);
+  }
+  state.voiceMode = false;
   resetSteps(); showErr("");
   step("hear", "done", "Typed question");
   try {
@@ -374,11 +269,96 @@ async function understood(transcript, intent, lang) {
     return;
   }
   step("intent", "done", `${intent.commodity} · ${intent.quantity_kg.toLocaleString("en-IN")} kg`);
-  await compare();
+  $("#chat").innerHTML = ""; chat("farmer", transcript);
+  await askOwnVehicle();
 }
-async function compare() {
+
+// ---------- conversation: own vehicle or transporter ----------
+const PROMPTS = {
+  "hi-IN": { own: "क्या आपके पास अपना वाहन है?", which: "कौन सा वाहन है? बाइक, कार, ट्रैक्टर, टेम्पो, छोटा हाथी, पिकअप या ट्रक?",
+    checking: (q, v) => `ठीक है जी। ${q} किलो के लिए ${v} चाहिए होगा। मैं अलग-अलग ट्रांसपोर्टरों के दाम देख रही हूँ।`,
+    ownOk: v => `ठीक है जी। अपने ${v} का ईंधन, टोल और परमिट खर्च जोड़कर देख रही हूँ।`, yes: "हाँ, है", no: "नहीं", again: "माफ़ कीजिए, समझ नहीं पाई। हाँ या नहीं बताइए।" },
+  "en-IN": { own: "Do you have your own vehicle?", which: "Which vehicle? Bike, car, tractor, tempo, Tata Ace, pickup or truck?",
+    checking: (q, v) => `Okay. ${q} kg needs a ${v}. I'm checking prices across transporters.`,
+    ownOk: v => `Okay. I'll add fuel, tolls and permit costs for your ${v}.`, yes: "Yes", no: "No", again: "Sorry, I didn't catch that. Please say yes or no." },
+};
+const P = () => PROMPTS[replyLang(state.lang)] || PROMPTS["en-IN"];
+const hindi = () => replyLang(state.lang) === "hi-IN";
+function chat(who, text) {
+  const c = $("#chat"); c.hidden = false;
+  const b = document.createElement("div"); b.className = "bubble " + who;
+  b.innerHTML = `<small>${who === "ai" ? "Mandi Saathi" : "You"}</small>${esc(text)}`;
+  c.appendChild(b); b.scrollIntoView({ block: "nearest", behavior: "smooth" });
+}
+async function sayLine(text) {
+  try {
+    const blob = await (await api("/v1/voice/speak", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: replyLang(state.lang), voice: "Shivani" }) })).blob();
+    const a = new Audio(URL.createObjectURL(blob));
+    await new Promise(res => { a.onended = res; a.onerror = res; a.play().catch(res); });
+  } catch { /* voice unavailable: the text bubble is enough */ }
+}
+async function askAI(text, answers, awaiting) {
+  state.awaiting = awaiting;
+  chat("ai", text);
+  const q = $("#quick"); q.innerHTML = ""; q.hidden = false;
+  for (const [label, reply] of answers) {
+    const btn = document.createElement("button"); btn.className = "chip"; btn.textContent = label;
+    btn.onclick = () => onReply(reply, label);
+    q.appendChild(btn);
+  }
+  await sayLine(text);
+  if (state.voiceMode && state.awaiting === awaiting && !rec.ctx) {
+    try { $("#listening").hidden = false; $("#listening").textContent = "● Listening for your answer…"; await startRec(true); } catch { $("#listening").hidden = true; }
+  }
+}
+function vehicleName(id, own) {
+  const cat = state.catalog || { vehicles: {}, own_vehicles: {} };
+  const v = (own ? cat.own_vehicles : cat.vehicles)[id] || {};
+  return hindi() ? (v.hi || v.label || id) : (v.label || id).toLowerCase();
+}
+function recommendedFor(qty) {
+  const vs = Object.entries((state.catalog || {}).vehicles || {});
+  const fit = vs.find(([, v]) => v.cap >= qty);
+  return fit ? fit[0] : (vs.length ? vs[vs.length - 1][0] : "three_wheeler");
+}
+async function askOwnVehicle() {
+  await askAI(P().own, [[P().yes, { yes: true }], [P().no, { no: true }]], "own");
+}
+async function onReply(reply, said) {
+  if (!state.awaiting) return;
+  if (rec.ctx) stopRec();
+  chat("farmer", said);
+  const stage = state.awaiting;
+  reply = reply || {};
+  if (reply.own_vehicle) return chooseTransport(reply.own_vehicle);
+  if (stage === "own" && reply.yes) {
+    const own = Object.entries((state.catalog || {}).own_vehicles || {});
+    return askAI(P().which, own.map(([id]) => [vehicleName(id, true), { own_vehicle: id }]), "which");
+  }
+  if (stage === "own" && reply.no) return chooseTransport(null);
+  return askAI(stage === "own" ? P().again : P().which, stage === "own" ? [[P().yes, { yes: true }], [P().no, { no: true }]]
+    : Object.entries((state.catalog || {}).own_vehicles || {}).map(([id]) => [vehicleName(id, true), { own_vehicle: id }]), stage);
+}
+async function chooseTransport(own) {
+  state.awaiting = null; $("#quick").hidden = true;
+  $("#ownv").value = own || "auto";
+  const qty = Number($("#qty").value);
+  const line = own ? P().ownOk(vehicleName(own, true)) : P().checking(qty.toLocaleString("en-IN"), vehicleName(recommendedFor(qty), false));
+  chat("ai", line);
+  const talking = sayLine(line);
+  await compare({ before: talking });
+}
+async function compare(opts = {}) {
+  if (comparing) return;
+  comparing = true;
+  $("#go").disabled = true; $("#askBtn").disabled = true; $("#mic").disabled = true;
+  $("#go").textContent = "Comparing your options…";
+  try { await runComparison(opts); }
+  finally { comparing = false; $("#go").disabled = false; $("#askBtn").disabled = false; $("#mic").disabled = false; $("#go").textContent = "Find my best mandi ↗"; }
+}
+async function runComparison(opts = {}) {
   const crop = $("#crop").value, qty = Number($("#qty").value);
-  if (!crop || !qty) { showErr("Choose a crop and quantity first."); return; }
+  if (!crop || !Number.isFinite(qty) || qty <= 0) { showErr("Choose a crop and quantity first."); return; }
   showErr(""); $("#truckOk").style.display = "none";
   step("prices", "run", "Looking up today's quotes…");
   let loc;
@@ -386,40 +366,82 @@ async function compare() {
   step("route", "run", "Asking the road router…");
   const lang = replyLang(state.lang);
   let res;
+  const query = { commodity: crop, quantity_kg: qty, latitude: loc.lat, longitude: loc.lon, language: lang,
+    radius_km: Number($("#radius").value) || 150,
+    own_vehicle: $("#ownv").value === "auto" ? null : $("#ownv").value };
   try {
-    res = await (await api("/v1/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-      commodity: crop, quantity_kg: qty, latitude: loc.lat, longitude: loc.lon, language: lang,
-      radius_km: Number($("#radius").value) || 150,
-      transport_rate_per_km: Number($("#rate").value), transport_base_fee: Number($("#base").value) }) })).json();
+    res = await (await api("/v1/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(query) })).json();
   } catch (e) { step("prices", "err", e.message); step("route", ""); showErr(e.message); return; }
-  state.lastResult = res;
-  const lv = res.live || {}, src = res.price_source.startsWith("data.gov.in") ? `Govt AGMARKNET (data.gov.in)${res.farmer_state ? " · " + res.farmer_state : ""}` : "demo prices";
-  if (lv.status === "feed_unavailable") showErr(`Live government feed unavailable (${lv.error}). ${res.no_quotes ? "" : "Showing demo prices instead."}`);
+  state.lastResult = res; state.query = { ...query, wait_seconds: 0 }; state.loc = loc;
+  if (res.live && res.live.state && $("#place").value === "gps") { state.placeName = [res.live.district, res.live.state].filter(Boolean).join(", "); showLoc(); }
+  startLive(res);
+  const lv = res.live || {}, src = `${res.price_source.replace(/, live$/, "")}${res.farmer_state ? " · " + res.farmer_state : ""}`;
+  if (lv.status === "feed_unavailable" && res.no_quotes) showErr(`Mandi prices are unavailable right now (${lv.error}). Please try again in a few minutes.`);
   const locating = lv.markets_still_locating ? ` · locating ${lv.markets_still_locating} more mandis, ask again in a minute` : "";
   step("prices", res.no_quotes ? "err" : "done",
     (res.no_quotes ? "No recent quotes within range" : `${res.ranking.length} mandis with fresh quotes`) + ` · ${src}${locating}${lv.sample_key ? " · sample key (10 rows max)" : ""}`);
   const g = res.graph, road = res.ranking[0] && res.ranking[0].distance_method === "road_route";
   step("route", res.no_quotes ? "" : "done", res.no_quotes ? "" :
-    `Dijkstra on ${g.nodes.length} places, ${g.edges.length} ${road ? "road (OSRM)" : "straight-line"} links · ₹${res.transport.rate_per_km}/km + ₹${res.transport.base_fee}`);
+    `${g.nodes.length} places, ${g.edges.length} ${road ? "road" : "straight-line"} links · ${res.transport.options.length} transport option${res.transport.options.length > 1 ? "s" : ""} compared${g.live_traffic ? " · live traffic" : ""}`);
   render(res, loc);
-  if (res.spoken_summary) await speak(res.spoken_summary, res.summary_language);
+  if (opts.before) await opts.before;
+  if (res.spoken_summary) { chat("ai", res.spoken_summary); await speak(res.spoken_summary, res.summary_language); }
 }
 async function speak(text, lang) {
   step("speak", "run", "Generating voice…");
+  $("#replay").disabled = true;
   try {
     const t = performance.now();
     const blob = await (await api("/v1/voice/speak", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: lang, voice: "Shivani" }) })).blob();
     if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
     state.audioUrl = URL.createObjectURL(blob);
+    $("#replay").disabled = false;
     const p = $("#player"); p.src = state.audioUrl; p.play().catch(() => {});
     step("speak", "done", `timbre-v3.0 · Shivani · ${lang} · ${((performance.now() - t) / 1000).toFixed(1)}s`);
   } catch (e) { step("speak", "err", e.message); }
 }
 
 // ---------- render ----------
-function render(res, loc) {
+// ---------- auto-refresh every 5 s ----------
+const signature = res => res.ranking.map(r => `${r.market_id}:${r.quote_inr_per_quintal}:${r.observed_on}:${r.estimated_transport_inr}`).join("|");
+function liveText(res) {
+  const lv = res.live || {}, age = lv.feed_age_seconds;
+  const src = "Live · " + res.price_source.replace(/, live$/, "");
+  const extra = lv.markets_still_locating ? ` · locating ${lv.markets_still_locating} more mandis` : lv.searching ? " · searching for more mandis" : "";
+  return `${src} · auto-refresh every 5 s · checked ${new Date().toLocaleTimeString("en-IN")}${age != null ? ` · feed pulled ${Math.round(age / 60)} min ago` : ""}${extra}`;
+}
+function startLive(res) {
+  clearInterval(state.timer);
+  $("#livebar").hidden = false; $("#livebar").classList.remove("paused"); $("#liveText").textContent = liveText(res);
+  state.timer = setInterval(poll, 5000);
+}
+async function poll() {
+  if (document.hidden || comparing || !state.query || state.polling) return;
+  state.polling = true;
+  try {
+    const res = await (await api("/v1/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(state.query) })).json();
+    $("#liveText").textContent = liveText(res);
+    if (signature(res) !== signature(state.lastResult)) {
+      const oldBest = state.lastResult.best && state.lastResult.best.market_id;
+      const before = new Map(state.lastResult.ranking.map(r => [r.market_id, r.quote_inr_per_quintal]));
+      state.lastResult = res;
+      render(res, state.loc, { changed: before });
+      if (res.best && res.best.market_id !== oldBest) $("#liveText").textContent = `New best mandi: ${res.best.market} · ` + liveText(res);
+      if (res.best && !oldBest && res.spoken_summary) speak(res.spoken_summary, res.summary_language);  // first results arrived while locating
+    }
+  } catch (e) { $("#liveText").textContent = "Refresh paused: " + e.message; }
+  finally { state.polling = false; }
+}
+document.addEventListener("visibilitychange", () => $("#livebar").classList.toggle("paused", document.hidden));
+
+function render(res, loc, opts = {}) {
+  $("#sourceTag").textContent = res.no_quotes ? "NO RECENT QUOTES" : "LIVE · " + res.price_source.replace(/, live$/, "").toUpperCase();
+  $("#resultCount").textContent = `${res.ranking.length} nearby mandis · ranked by estimated net return`;
+  if (!opts.changed) { $("#replay").disabled = true; $("#player").pause(); $("#player").removeAttribute("src"); }
   $("#empty").style.display = res.no_quotes ? "block" : "none";
-  $("#empty").textContent = res.no_quotes ? "No mandi with fresh quotes for this crop within your radius. Demo prices cover mandis near Agra (UP) and Kolar (Karnataka): pick a demo village, increase the radius, or load real prices with data.gov.in sync." : "";
+  if (res.no_quotes) $("#emptyMsg").textContent = (res.live && (res.live.markets_still_locating || res.live.searching))
+    ? "Finding mandis near you in today's AGMARKNET quotes… This page refreshes every 5 seconds."
+    : "No mandi with fresh quotes for this crop within your radius today. Try a larger radius or another crop.";
   $("#best").style.display = res.best ? "block" : "none";
   $("#tbl").hidden = !res.ranking.length;
   $("#disc").textContent = res.disclaimer;
@@ -431,14 +453,16 @@ function render(res, loc) {
     $("#bFreight").textContent = "−" + fmt(b.estimated_transport_inr);
     $("#bDist").textContent = b.distance_km + " km" + (b.distance_method === "road_route" ? "" : "*");
     $("#say").textContent = res.spoken_summary;
-    $("#bRoute").textContent = "Shortest route (Dijkstra): " + b.route.join(" → ");
+    const bo = b.best_option, traffic = bo.traffic_delay_min > 0 ? ` (+${bo.traffic_delay_min} min traffic)` : "";
+    $("#bRoute").textContent = `Shortest road route: ${b.route.join(" → ")} · ${bo.provider === "Own vehicle" ? "Own " + bo.vehicle_label.toLowerCase() : bo.provider + " " + bo.vehicle_label} · ~${bo.minutes} min${traffic}`;
   }
   const tb = $("#tbl tbody"); tb.innerHTML = "";
   res.ranking.forEach((r, i) => {
     const tr = document.createElement("tr"); if (i === 0) tr.className = "top";
-    const src = r.source === "demo_synthetic" ? ' <span class="flag">demo</span>' : ` <span class="flag" style="color:var(--green)">live ${r.observed_on.slice(5)}</span>`;
-    const via = r.route.length > 2 ? `<br><small style="color:var(--muted);font-weight:400">via ${r.route.slice(1, -1).join(", ")}</small>` : "";
-    tr.innerHTML = `<td>${i + 1}. ${r.market}${src}${via}</td><td>${Math.round(r.quote_inr_per_quintal)}</td><td>${r.distance_km}${r.distance_method === "road_route" ? "" : "*"}</td><td>${fmt(r.gross_inr)}</td><td>−${fmt(r.estimated_transport_inr)}</td><td><b>${fmt(r.estimated_net_inr)}</b></td>`;
+    if (opts.changed && opts.changed.get(r.market_id) !== r.quote_inr_per_quintal) tr.classList.add("changed");
+    const src = ` <span class="flag" style="color:var(--green)">${esc(r.observed_on)}</span>`;
+    const via = r.route.length > 2 ? `<br><small style="color:var(--muted);font-weight:400">via ${esc(r.route.slice(1, -1).join(", "))}</small>` : "";
+    tr.innerHTML = `<td>${i + 1}. ${esc(r.market)}${src}${via}</td><td>${Math.round(r.quote_inr_per_quintal)}</td><td>${r.distance_km}${r.distance_method === "road_route" ? "" : "*"}</td><td>${fmt(r.gross_inr)}</td><td>−${fmt(r.estimated_transport_inr)}<br><small style="color:var(--muted);font-weight:400">${esc(r.best_option.provider)} · ${esc(r.best_option.vehicle_label)}</small></td><td><b>${fmt(r.estimated_net_inr)}</b></td>`;
     tb.appendChild(tr);
   });
   // map
@@ -448,44 +472,86 @@ function render(res, loc) {
   res.ranking.forEach((r, i) => {
     const top = i === 0;
     pts.push([r.latitude, r.longitude]);
-    L.circleMarker([r.latitude, r.longitude], { radius: top ? 11 : 7, color: top ? "#1f5a23" : "#c77d0a", fillColor: top ? "#2f7d32" : "#f0b04a", fillOpacity: .9, weight: 2 })
-      .bindTooltip(`${i + 1}. ${r.market} · ${fmt(r.estimated_net_inr)}`, { permanent: top, direction: "top" }).addTo(state.layer);
+    L.circleMarker([r.latitude, r.longitude], { radius: top ? 11 : 7, color: top ? "#536f43" : "#a698b9", fillColor: top ? "#6d8b56" : "#bbafca", fillOpacity: .9, weight: 2 })
+      .bindTooltip(`${i + 1}. ${esc(r.market)} · ${fmt(r.estimated_net_inr)}`, { permanent: top, direction: "top" }).addTo(state.layer);
   });
-  // Graph links that Dijkstra searched (faint), then the winning route (bold).
+  // Road links that were searched (faint), then the winning route (bold).
   const nodes = res.graph.nodes;
   res.graph.edges.forEach(([a, b, km]) => L.polyline([[nodes[a].latitude, nodes[a].longitude], [nodes[b].latitude, nodes[b].longitude]],
-    { color: "#8a8f80", weight: 1, opacity: .45 }).bindTooltip(`${nodes[a].name} – ${nodes[b].name}: ${km} km`).addTo(state.layer));
+    { color: "#8a8f80", weight: 1, opacity: .45 }).bindTooltip(`${esc(nodes[a].name)} – ${esc(nodes[b].name)}: ${km} km`).addTo(state.layer));
   if (res.best) {
     const line = res.graph.best_route_geometry || res.best.route_nodes.map(i => [nodes[i].latitude, nodes[i].longitude]);
-    L.polyline(line, { color: "#2f7d32", weight: 5, opacity: .9 }).addTo(state.layer);
+    L.polyline(line, { color: "#536f43", weight: 5, opacity: .9 }).addTo(state.layer);
   }
-  state.map.fitBounds(pts, { padding: [30, 30], maxZoom: 11 });
+  if (!opts.changed || pts.length !== state.lastPts) state.map.fitBounds(pts, { padding: [30, 30], maxZoom: 11 });
+  state.lastPts = pts.length;
+  renderTransport(res);
+}
+
+// ---------- transport options: options x mandis ----------
+function renderTransport(res) {
+  const card = $("#transportCard");
+  if (!res.best) { card.hidden = true; return; }
+  card.hidden = false;
+  const b = res.best, bo = b.best_option, t = res.transport;
+  const pickup = $("#place").value === "typed" && state.typedLoc ? state.typedLoc.label : (state.placeName || "Your farm");
+  const delay = bo.traffic_delay_min > 0 ? `<span class="pill warn">+${bo.traffic_delay_min} min traffic</span>` : res.graph.live_traffic ? `<span class="pill">clear roads</span>` : "";
+  $("#trip").innerHTML = `<span>📍 Pickup <b>${esc(pickup)}</b></span><span class="arrow">→</span><span>🏪 Drop <b>${esc(b.market)} mandi</b></span>
+    <span class="pill">${bo.distance_km} km · ~${bo.minutes} min</span>${delay}
+    <span class="pill">${res.quantity_kg.toLocaleString("en-IN")} kg → ${esc(t.own_vehicle ? "own " + bo.vehicle_label : t.recommended_label)}</span>`;
+  const cols = res.ranking.slice(0, 6);
+  $("#mtx thead").innerHTML = `<tr><th>Transport option</th>${cols.map(r => `<th>${esc(r.market)}</th>`).join("")}</tr>`;
+  const colBest = cols.map(r => r.best_option.option_id);
+  $("#mtx tbody").innerHTML = t.options.map(o => {
+    const name = o.kind === "own" ? `Own ${esc(o.vehicle_label.toLowerCase())}` : `${esc(o.provider)} · ${esc(o.vehicle_label)}`;
+    const trips = o.trips > 1 ? `<small>${o.trips} trips</small>` : "";
+    const cells = cols.map((r, i) => {
+      const c = r.options.find(x => x.option_id === o.id);
+      if (!c) return `<td class="na">out of range</td>`;
+      const cls = [colBest[i] === o.id ? "colbest" : "", r === b && o.id === bo.option_id ? "winner" : ""].join(" ");
+      return `<td class="${cls}"><b>${fmt(c.keep_inr)}</b><small>transport ${fmt(c.transport_inr)}</small></td>`;
+    }).join("");
+    return `<tr><td>${name}${trips}</td>${cells}</tr>`;
+  }).join("");
+  const bd = bo.breakdown || {};
+  const parts = bo.kind === "own"
+    ? [`fuel ${bd.fuel_litres} L ≈ ${fmt(bd.fuel_inr)}`, `tolls ≈ ${fmt(bd.toll_inr)}`, `permit & insurance ≈ ${fmt(bd.permit_insurance_inr)}`]
+    : [`tolls ≈ ${fmt(bd.toll_inr || 0)} included`];
+  $("#trSub").textContent = `you keep after transport · ${t.options.length} options × ${cols.length} mandis`;
+  $("#trNote").textContent = `Best: ${bo.provider === "Own vehicle" ? "own " + bo.vehicle_label.toLowerCase() : bo.provider + " " + bo.vehicle_label} to ${b.market} (${parts.join(" · ")}). ${bo.note}`;
 }
 
 // ---------- truck request ----------
-$("#truck").onclick = async () => {
-  const r = state.lastResult; if (!r || !r.best) return;
-  $("#truck").disabled = true;
+$("#truck").onclick = () => {
+  const r = state.lastResult; if (!r?.best) return;
+  const o = r.best.best_option;
+  $("#dispatchSummary").textContent = `${r.quantity_kg.toLocaleString("en-IN")} kg ${r.commodity} → ${r.best.market} · ${o.provider} ${o.vehicle_label} (estimate ${fmt(o.transport_inr)})`;
+  $("#dispatchError").textContent = "";
+  $("#dispatchDialog").showModal();
+};
+$("#cancelDispatch").onclick = () => $("#dispatchDialog").close();
+$("#dispatchForm").onsubmit = async event => {
+  event.preventDefault();
+  const r = state.lastResult; if (!r?.best) return;
+  $("#sendDispatch").disabled = true;
   try {
-    const d = await (await api("/v1/dispatch-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
-      market_id: r.best.market_id, commodity: r.commodity, quantity_kg: r.quantity_kg, contact: "DEMO-FARMER-001",
-      note: `Pickup for ${r.quantity_kg} kg ${r.commodity} to ${r.best.market}` }) })).json();
-    const box = $("#truckOk");
-    box.innerHTML = `✅ Truck request sent to the dispatcher<br><small>Request ${d.id.slice(0, 8)} · status: ${d.status.replaceAll("_", " ")} · ${d.message}</small>`;
-    box.style.display = "block";
-  } catch (e) { showErr("Truck request failed: " + e.message); }
-  $("#truck").disabled = false;
+    const d = await (await api("/v1/dispatch-requests", {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({
+      market_id:r.best.market_id,commodity:r.commodity,quantity_kg:r.quantity_kg,contact:$("#contact").value.trim(),note:$("#pickupNote").value.trim()
+    })})).json();
+    $("#truckOk").textContent = `Request ${d.id.slice(0,8)} saved · Pending manual match. ${d.message}`;
+    $("#truckOk").style.display = "block";
+    $("#dispatchDialog").close();
+  } catch(e) { $("#dispatchError").textContent = e.message; }
+  finally { $("#sendDispatch").disabled = false; }
 };
 
 // ---------- wiring ----------
 $("#replay").onclick = () => { const p = $("#player"); if (p.src) { p.currentTime = 0; p.play(); } };
-$("#go").onclick = () => { resetSteps(); step("hear", "done", "Manual entry"); step("intent", "done", "Manual entry"); compare(); };
+$("#go").onclick = () => { state.awaiting = null; $("#quick").hidden = true; resetSteps(); step("hear", "done", "Manual entry"); step("intent", "done", "Manual entry"); compare(); };
 $("#askBtn").onclick = () => askText($("#q").value);
 $("#q").addEventListener("keydown", e => { if (e.key === "Enter") askText($("#q").value); });
 document.querySelectorAll("#examples .chip").forEach(c => c.onclick = () => {
   $("#q").value = c.textContent;
-  if (/[ಀ-೿]/.test(c.textContent)) $("#place").value = "13.25,78.05";
-  else $("#place").value = "27.10,78.15";
   askText(c.textContent);
 });
 </script>

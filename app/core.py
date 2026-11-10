@@ -6,24 +6,74 @@ import math
 import os
 import re
 import sqlite3
+import time
 from datetime import date, datetime, timezone
 
 import httpx
 
 LANGUAGES = {"en-IN": "English", "hi-IN": "हिन्दी", "kn-IN": "ಕನ್ನಡ", "ta-IN": "தமிழ்", "te-IN": "తెలుగు", "mr-IN": "मराठी", "bn-IN": "বাংলা", "gu-IN": "ગુજરાતી", "pa-IN": "ਪੰਜਾਬੀ", "ml-IN": "മലയാളം"}
 
-# Aliases include native scripts and romanised Hinglish/Tanglish spellings.
-CROPS = {
-    "potato": ["potato", "आलू", "आलु", "ಆಲೂಗಡ್ಡೆ", "உருளைக்கிழங்கு", "బంగాళాదుంప", "aloo", "alu", "batata", "बटाटा", "urulaikizhangu", "aloogadde"],
-    "sugarcane": ["sugarcane", "गन्ना", "गन्ने", "ಕಬ್ಬು", "கரும்பு", "చెరకు", "ganna", "ganne", "oos", "ऊस", "kabbu", "karumbu"],
-    "onion": ["onion", "प्याज", "प्याज़", "ಈರುಳ್ಳಿ", "வெங்காயம்", "ఉల్లిపాయ", "pyaz", "pyaaz", "piyaz", "kanda", "कांदा", "eerulli", "vengayam"],
-    "tomato": ["tomato", "टमाटर", "ಟೊಮೆಟೊ", "தக்காளி", "టమాటా", "tamatar", "tamaatar", "thakkali", "tamata"],
+# id: (English, Hindi, aliases). Aliases cover AGMARKNET commodity names, native scripts
+# and romanised Hinglish/Tanglish. Order matters where one alias contains another
+# (groundnut before moong, cabbage before cauliflower): the first match wins.
+CROP_TABLE = {
+    "potato": ("Potato", "आलू", ["potato", "आलू", "आलु", "ಆಲೂಗಡ್ಡೆ", "உருளைக்கிழங்கு", "బంగాళాదుంప", "aloo", "alu", "batata", "बटाटा", "urulaikizhangu", "aloogadde"]),
+    "onion": ("Onion", "प्याज़", ["onion", "प्याज", "प्याज़", "ಈರುಳ್ಳಿ", "வெங்காயம்", "ఉల్లిపాయ", "pyaz", "pyaaz", "piyaz", "kanda", "कांदा", "eerulli", "vengayam"]),
+    "tomato": ("Tomato", "टमाटर", ["tomato", "टमाटर", "ಟೊಮೆಟೊ", "தக்காளி", "టమాటా", "tamatar", "tamaatar", "thakkali", "tamata"]),
+    "sugarcane": ("Sugarcane", "गन्ना", ["sugarcane", "गन्ना", "गन्ने", "ಕಬ್ಬು", "கரும்பு", "చెరకు", "ganna", "ganne", "oos", "ऊस", "kabbu", "karumbu"]),
+    "wheat": ("Wheat", "गेहूं", ["wheat", "गेहूं", "गेहूँ", "गेंहू", "ಗೋಧಿ", "கோதுமை", "గోధుమ", "gehu", "gehun", "gehoon", "genhu"]),
+    "paddy": ("Paddy", "धान", ["paddy", "dhan", "धान", "ಭತ್ತ", "நெல்", "వరి"]),
+    "rice": ("Rice", "चावल", ["rice", "chawal", "chaawal", "चावल", "ಅಕ್ಕಿ", "அரிசி", "బియ్యం"]),
+    "maize": ("Maize", "मक्का", ["maize", "corn", "makka", "makai", "मक्का", "मकई", "ಮೆಕ್ಕೆಜೋಳ", "மக்காச்சோளம்"]),
+    "bajra": ("Bajra", "बाजरा", ["bajra", "pearl millet", "cumbu", "बाजरा", "ಸಜ್ಜೆ", "கம்பு"]),
+    "jowar": ("Jowar", "ज्वार", ["jowar", "sorghum", "ज्वार", "ಜೋಳ", "சோளம்"]),
+    "ragi": ("Ragi", "रागी", ["ragi", "finger millet", "nachni", "रागी", "ನಾಚನಿ", "ರಾಗಿ", "கேழ்வரகு"]),
+    "groundnut": ("Groundnut", "मूंगफली", ["groundnut", "peanut", "moongfali", "mungfali", "मूंगफली", "मूँगफली", "ಕಡಲೆಕಾಯಿ", "நிலக்கடலை"]),
+    "moong": ("Moong", "मूंग", ["green gram", "moong", "mung", "मूंग", "मूँग", "ಹೆಸರು", "பாசிப்பயறு"]),
+    "urad": ("Urad", "उड़द", ["black gram", "urd", "urad", "उड़द", "उड़द", "उडद", "ಉದ್ದು", "உளுந்து"]),
+    "tur": ("Tur / Arhar", "अरहर", ["arhar", "tur", "toor", "red gram", "अरहर", "तुअर", "तूर", "ತೊಗರಿ", "துவரை"]),
+    "chana": ("Chana", "चना", ["bengal gram", "chana", "chickpea", "चना", "ಕಡಲೆ", "கொண்டைக்கடலை"]),
+    "soyabean": ("Soyabean", "सोयाबीन", ["soyabean", "soybean", "soya", "सोयाबीन", "ಸೋಯಾಬೀನ್"]),
+    "mustard": ("Mustard", "सरसों", ["mustard", "sarson", "sarso", "सरसों", "सरसो", "ಸಾಸಿವೆ", "கடுகு"]),
+    "cotton": ("Cotton", "कपास", ["cotton", "kapas", "कपास", "ಹತ್ತಿ", "பருத்தி", "పత్తి"]),
+    "garlic": ("Garlic", "लहसुन", ["garlic", "lahsun", "lehsun", "लहसुन", "ಬೆಳ್ಳುಳ್ಳಿ", "பூண்டு"]),
+    "ginger": ("Ginger", "अदरक", ["ginger", "adrak", "अदरक", "ಶುಂಠಿ", "இஞ்சி"]),
+    "green_chilli": ("Green Chilli", "हरी मिर्च", ["green chilli", "hari mirch", "mirchi", "मिर्च", "मिर्ची", "ಮೆಣಸಿನಕಾಯಿ", "மிளகாய்"]),
+    "cabbage": ("Cabbage", "पत्ता गोभी", ["cabbage", "patta gobhi", "band gobhi", "पत्ता गोभी", "पत्तागोभी", "बंद गोभी", "ಎಲೆಕೋಸು", "முட்டைக்கோஸ்"]),
+    "cauliflower": ("Cauliflower", "फूल गोभी", ["cauliflower", "gobhi", "gobi", "phool gobhi", "गोभी", "ಹೂಕೋಸು", "காலிஃப்ளவர்"]),
+    "brinjal": ("Brinjal", "बैंगन", ["brinjal", "eggplant", "baingan", "बैंगन", "ಬದನೆ", "கத்தரிக்காய்"]),
+    "bhindi": ("Bhindi / Okra", "भिंडी", ["bhindi", "ladies finger", "okra", "भिंडी", "ಬೆಂಡೆ", "வெண்டைக்காய்"]),
+    "peas": ("Green Peas", "मटर", ["peas", "matar", "mattar", "मटर", "ಬಟಾಣಿ", "பட்டாணி"]),
+    "carrot": ("Carrot", "गाजर", ["carrot", "gajar", "गाजर", "ಕ್ಯಾರೆಟ್", "கேரட்"]),
+    "radish": ("Radish", "मूली", ["raddish", "radish", "mooli", "muli", "मूली", "ಮೂಲಂಗಿ", "முள்ளங்கி"]),
+    "cucumber": ("Cucumber", "खीरा", ["cucumbar", "cucumber", "kheera", "khira", "खीरा", "ಸೌತೆಕಾಯಿ", "வெள்ளரிக்காய்"]),
+    "bottle_gourd": ("Bottle Gourd", "लौकी", ["bottle gourd", "lauki", "ghiya", "लौकी", "ಸೋರೆಕಾಯಿ", "சுரைக்காய்"]),
+    "bitter_gourd": ("Bitter Gourd", "करेला", ["bitter gourd", "karela", "करेला", "ಹಾಗಲಕಾಯಿ", "பாகற்காய்"]),
+    "pumpkin": ("Pumpkin", "कद्दू", ["pumpkin", "kaddu", "कद्दू", "ಕುಂಬಳಕಾಯಿ", "பூசணி"]),
+    "spinach": ("Spinach", "पालक", ["spinach", "palak", "पालक", "ಪಾಲಕ್", "பசலைக்கீரை"]),
+    "coriander": ("Coriander", "धनिया", ["coriander", "dhaniya", "dhania", "धनिया", "ಕೊತ್ತಂಬರಿ", "கொத்தமல்லி"]),
+    "lemon": ("Lemon", "नींबू", ["lemon", "lime", "nimbu", "neembu", "नींबू", "निम्बू", "ನಿಂಬೆ", "எலுமிச்சை"]),
+    "turmeric": ("Turmeric", "हल्दी", ["turmeric", "haldi", "हल्दी", "ಅರಿಶಿನ", "மஞ்சள்"]),
+    "cumin": ("Cumin / Jeera", "जीरा", ["cummin", "cumin", "jeera", "jira", "जीरा", "ಜೀರಿಗೆ", "சீரகம்"]),
+    "banana": ("Banana", "केला", ["banana", "kela", "केला", "केले", "ಬಾಳೆ", "வாழை"]),
+    "custard_apple": ("Custard Apple", "सीताफल", ["custard apple", "sitaphal", "sharifa", "सीताफल", "शरीफा"]),
+    "apple": ("Apple", "सेब", ["apple", "seb", "saib", "सेब", "ಸೇಬು", "ஆப்பிள்"]),
+    "pomegranate": ("Pomegranate", "अनार", ["pomegranate", "anar", "anaar", "अनार", "ದಾಳಿಂಬೆ", "மாதுளை"]),
+    "grapes": ("Grapes", "अंगूर", ["grapes", "grape", "angoor", "angur", "अंगूर", "ದ್ರಾಕ್ಷಿ", "திராட்சை"]),
+    "papaya": ("Papaya", "पपीता", ["papaya", "papita", "पपीता", "ಪಪ್ಪಾಯಿ", "பப்பாளி"]),
+    "guava": ("Guava", "अमरूद", ["guava", "amrud", "amrood", "अमरूद", "ಸೀಬೆ", "கொய்யா"]),
+    "orange": ("Orange", "संतरा", ["orange", "santra", "santara", "संतरा", "ಕಿತ್ತಳೆ", "ஆரஞ்சு"]),
+    "watermelon": ("Watermelon", "तरबूज", ["water melon", "watermelon", "tarbooz", "tarbuj", "तरबूज", "ಕಲ್ಲಂಗಡಿ", "தர்பூசணி"]),
+    "coconut": ("Coconut", "नारियल", ["coconut", "nariyal", "नारियल", "ತೆಂಗಿನಕಾಯಿ", "தேங்காய்"]),
+    "mango": ("Mango", "आम", ["mango", "aam", "आम", "ಮಾವು", "மாம்பழம்"]),
 }
+CROPS = {crop: aliases for crop, (_, _, aliases) in CROP_TABLE.items()}
 # How each crop is named inside the spoken reply.
 CROP_LABELS = {
-    "hi-IN": {"potato": "आलू", "sugarcane": "गन्ना", "onion": "प्याज़", "tomato": "टमाटर"},
-    "kn-IN": {"potato": "ಆಲೂಗಡ್ಡೆ", "sugarcane": "ಕಬ್ಬು", "onion": "ಈರುಳ್ಳಿ", "tomato": "ಟೊಮೆಟೊ"},
-    "ta-IN": {"potato": "உருளைக்கிழங்கு", "sugarcane": "கரும்பு", "onion": "வெங்காயம்", "tomato": "தக்காளி"},
+    "en-IN": {crop: en.lower() for crop, (en, _, _) in CROP_TABLE.items()},
+    "hi-IN": {crop: hi for crop, (_, hi, _) in CROP_TABLE.items()},
+    "kn-IN": {"potato": "ಆಲೂಗಡ್ಡೆ", "sugarcane": "ಕಬ್ಬು", "onion": "ಈರುಳ್ಳಿ", "tomato": "ಟೊಮೆಟೊ", "ragi": "ರಾಗಿ", "paddy": "ಭತ್ತ", "rice": "ಅಕ್ಕಿ", "banana": "ಬಾಳೆ", "coconut": "ತೆಂಗಿನಕಾಯಿ"},
+    "ta-IN": {"potato": "உருளைக்கிழங்கு", "sugarcane": "கரும்பு", "onion": "வெங்காயம்", "tomato": "தக்காளி", "paddy": "நெல்", "rice": "அரிசி", "banana": "வாழை", "coconut": "தேங்காய்"},
 }
 MESSAGES = {
     "en-IN": "Best estimated net return for {qty} kg of {crop}: {market}, ₹{net}. Quote dated {date}. Confirm the buyer and freight before travel.",
@@ -67,8 +117,15 @@ def _alias_hit(alias, text):
         return re.search(rf"\b{re.escape(alias)}\b", text) is not None
     return alias in text
 
+# Processed products and look-alikes that must not be priced as the raw crop.
+NOT_RAW_CROP = re.compile(r"sweet potato|\batta\b|\boil\b|coir|cotton seed|bags|dried|powder|dry grapes|banana stem|\bdal\b|"
+                          r"broken rice|beaten rice|baby corn|sweet corn|liquor|spring onion|onion green|wild cucumber|rat tail|"
+                          r"sweet lime|mousambi|galgal|mustard leaf|tender coconut|coconut seed|sweet pumpkin|white pumpkin|white peas")
+
 def crop_name(text):
     value = text.casefold().strip()
+    if NOT_RAW_CROP.search(value):
+        return value
     for crop, aliases in CROPS.items():
         if any(_alias_hit(a.casefold(), value) for a in aliases):
             return crop
@@ -99,9 +156,106 @@ def distance_km(a, b, c, d):
     x = math.sin(delta_lat/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin(delta_lon/2)**2
     return 2*radius*math.asin(math.sqrt(x))
 
+_route_cache = {}  # roads don't change: cache OSRM answers so auto-refresh stays cheap
+
+def _cached(key):
+    hit = _route_cache.get(key)
+    return hit[1] if hit and time.monotonic() - hit[0] < 6 * 3600 else None
+
+def _remember(key, value):
+    if len(_route_cache) > 500:
+        _route_cache.clear()
+    _route_cache[key] = (time.monotonic(), value)
+    return value
+
+TOMTOM = "https://api.tomtom.com"
+
+def tomtom_key():
+    return os.getenv("TOMTOM_API_KEY") or None
+
+async def road_data(client, points):
+    """Distances (km), travel times (minutes) and traffic delay for every pair of points.
+    OSRM gives the full road matrix; with TOMTOM_API_KEY the farm-to-mandi legs
+    (row and column 0) are replaced by TomTom live-traffic values.
+    Returns {"km", "min", "delay_min", "method", "traffic"}."""
+    key = ("data", tuple((round(a, 4), round(b, 4)) for a, b in points))
+    if (hit := _cached(key)) is not None and not tomtom_key():
+        return hit
+    km, minutes, method = await _osrm_table(client, points)
+    delay = [[0.0] * len(points) for _ in points]
+    traffic = False
+    if tomtom_key() and len(points) > 1:
+        live = await _tomtom_row(client, points)
+        if live:
+            traffic = True
+            for j, (k, m, d) in live.items():
+                km[0][j] = km[j][0] = k
+                minutes[0][j] = minutes[j][0] = m
+                delay[0][j] = delay[j][0] = d
+    result = {"km": km, "min": minutes, "delay_min": delay, "method": method, "traffic": traffic}
+    if method == "road_route" and not traffic:
+        _remember(key, result)
+    return result
+
+async def _osrm_table(client, points):
+    straight = [[distance_km(*a, *b) for b in points] for a in points]
+    est_min = [[d / 40 * 60 for d in row] for row in straight]  # ~40 km/h when no router answers
+    base = os.getenv("OSRM_BASE_URL", "https://router.project-osrm.org").rstrip("/")
+    coords = ";".join(f"{lon},{lat}" for lat, lon in points)
+    try:
+        resp = await client.get(f"{base}/table/v1/driving/{coords}", params={"annotations": "distance,duration"}, timeout=8)
+        resp.raise_for_status()
+        data = resp.json()
+        km = [[m/1000 if m is not None else straight[i][j] for j, m in enumerate(row)] for i, row in enumerate(data["distances"])]
+        mins = [[s/60 if s is not None else est_min[i][j] for j, s in enumerate(row)] for i, row in enumerate(data["durations"])]
+        return km, mins, "road_route"
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError):
+        return straight, est_min, "straight_line_estimate"
+
+async def _tomtom_row(client, points):
+    """Farm -> each mandi with live traffic (TomTom Matrix Routing v2, synchronous)."""
+    body = {"origins": [{"point": {"latitude": points[0][0], "longitude": points[0][1]}}],
+            "destinations": [{"point": {"latitude": a, "longitude": b}} for a, b in points[1:]],
+            "options": {"departAt": "now", "routeType": "fastest", "traffic": "live", "travelMode": "truck"}}
+    try:
+        resp = await client.post(f"{TOMTOM}/routing/matrix/2", params={"key": tomtom_key()}, json=body, timeout=15)
+        resp.raise_for_status()
+        out = {}
+        for cell in resp.json().get("data", []):
+            s = cell.get("routeSummary")
+            if s:
+                out[cell["destinationIndex"] + 1] = (s["lengthInMeters"] / 1000, s["travelTimeInSeconds"] / 60, s.get("trafficDelayInSeconds", 0) / 60)
+        return out
+    except (httpx.HTTPError, ValueError, KeyError, TypeError):
+        return None
+
+async def traffic_route(client, waypoints):
+    """Road polyline and live traffic delay through waypoints (TomTom), or None."""
+    if not tomtom_key():
+        return None
+    loc = ":".join(f"{lat},{lon}" for lat, lon in waypoints)
+    try:
+        resp = await client.get(f"{TOMTOM}/routing/1/calculateRoute/{loc}/json",
+                                params={"key": tomtom_key(), "traffic": "true", "travelMode": "truck", "routeType": "fastest"}, timeout=10)
+        resp.raise_for_status()
+        route = resp.json()["routes"][0]
+        line = [[p["latitude"], p["longitude"]] for leg in route["legs"] for p in leg["points"]]
+        s = route["summary"]
+        return {"line": line[::max(1, len(line) // 400)], "minutes": s["travelTimeInSeconds"] / 60,
+                "traffic_delay_min": s.get("trafficDelayInSeconds", 0) / 60, "km": s["lengthInMeters"] / 1000}
+    except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError):
+        return None
+
 async def road_matrix(client, points):
     """All-pairs road distance (km) between points via one OSRM table call.
     Falls back to straight-line distance for any pair OSRM cannot answer."""
+    key = ("matrix", tuple((round(a, 4), round(b, 4)) for a, b in points))
+    if (hit := _cached(key)) is not None:
+        return hit
+    result = await _road_matrix(client, points)
+    return _remember(key, result) if result[1] == "road_route" else result
+
+async def _road_matrix(client, points):
     straight = [[distance_km(*a, *b) for b in points] for a in points]
     base = os.getenv("OSRM_BASE_URL", "https://router.project-osrm.org").rstrip("/")
     coords = ";".join(f"{lon},{lat}" for lat, lon in points)
@@ -156,12 +310,15 @@ def path_to(prev, target):
 
 async def route_geometry(client, waypoints):
     """Road polyline [[lat, lon], ...] through the given waypoints, or None."""
+    key = ("route", tuple((round(a, 4), round(b, 4)) for a, b in waypoints))
+    if (hit := _cached(key)) is not None:
+        return hit
     base = os.getenv("OSRM_BASE_URL", "https://router.project-osrm.org").rstrip("/")
     coords = ";".join(f"{lon},{lat}" for lat, lon in waypoints)
     try:
         resp = await client.get(f"{base}/route/v1/driving/{coords}", params={"overview": "simplified", "geometries": "geojson"}, timeout=6)
         resp.raise_for_status()
-        return [[lat, lon] for lon, lat in resp.json()["routes"][0]["geometry"]["coordinates"]]
+        return _remember(key, [[lat, lon] for lon, lat in resp.json()["routes"][0]["geometry"]["coordinates"]])
     except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError):
         return None
 
@@ -196,34 +353,3 @@ def ingest(records, source):
             except (KeyError, ValueError, TypeError):
                 skipped += 1
     return {"accepted": accepted, "skipped": skipped, "unit": "INR_per_quintal", "note": "Unmapped markets and invalid rows skipped"}
-
-# Synthetic demo data: real mandi towns with approximate coordinates, made-up prices (INR/quintal).
-DEMO_MARKETS = [
-    # name, state, district, lat, lon, {crop: modal price}
-    ("Agra", "Uttar Pradesh", "Agra", 27.1767, 78.0081, {"potato": 1180, "onion": 2150, "tomato": 1500}),
-    ("Fatehabad", "Uttar Pradesh", "Agra", 27.0260, 78.3030, {"potato": 1120, "onion": 2050}),
-    ("Firozabad", "Uttar Pradesh", "Firozabad", 27.1592, 78.3957, {"potato": 1240, "onion": 2200, "tomato": 1450}),
-    ("Shikohabad", "Uttar Pradesh", "Firozabad", 27.1080, 78.5870, {"potato": 1390, "onion": 2100}),
-    ("Mathura", "Uttar Pradesh", "Mathura", 27.4924, 77.6737, {"potato": 1300, "onion": 2400, "tomato": 1700}),
-    ("Hathras", "Uttar Pradesh", "Hathras", 27.5960, 78.0499, {"potato": 1260, "onion": 2250, "tomato": 1600, "sugarcane": 370}),
-    ("Aligarh", "Uttar Pradesh", "Aligarh", 27.8974, 78.0880, {"potato": 1420, "onion": 2500, "tomato": 1850, "sugarcane": 375}),
-    ("Mainpuri", "Uttar Pradesh", "Mainpuri", 27.2350, 79.0270, {"potato": 1510, "onion": 2300, "sugarcane": 365}),
-    ("Kolar", "Karnataka", "Kolar", 13.1360, 78.1290, {"tomato": 1650, "onion": 2050, "potato": 1700}),
-    ("Chintamani", "Karnataka", "Chikkaballapur", 13.4000, 78.0560, {"tomato": 1500, "potato": 1650}),
-    ("Mulbagal", "Karnataka", "Kolar", 13.1650, 78.3930, {"tomato": 1580, "onion": 1950}),
-    ("Chikkaballapur", "Karnataka", "Chikkaballapur", 13.4355, 77.7315, {"tomato": 1720, "onion": 2150, "potato": 1760}),
-    ("Hoskote", "Karnataka", "Bengaluru Rural", 13.0707, 77.7980, {"tomato": 1800, "onion": 2300, "potato": 1850}),
-    ("Bengaluru (Binny Mill)", "Karnataka", "Bengaluru Urban", 12.9634, 77.5770, {"tomato": 2050, "onion": 2600, "potato": 2000}),
-    ("Mandya", "Karnataka", "Mandya", 12.5223, 76.8970, {"sugarcane": 360, "tomato": 1600}),
-]
-
-def seed_demo():
-    """Insert demo mandis and today's synthetic quotes. Safe to run on every start."""
-    today = date.today().isoformat()
-    with connect() as db:
-        for name, state, district, lat, lon, _ in DEMO_MARKETS:
-            db.execute("INSERT INTO markets(name,state,district,latitude,longitude) VALUES(?,?,?,?,?) ON CONFLICT(name,state,district) DO NOTHING", (name, state, district, lat, lon))
-    rows = [{"market": n, "state": s, "district": d, "commodity": crop, "modal_price": price,
-             "min_price": round(price*0.9), "max_price": round(price*1.08), "arrival_date": today}
-            for n, s, d, _, _, prices in DEMO_MARKETS for crop, price in prices.items()]
-    return ingest(rows, "demo_synthetic")

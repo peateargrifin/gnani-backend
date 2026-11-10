@@ -15,9 +15,31 @@ uvicorn app.main:app --reload
 
 `/docs` is the live OpenAPI reference. `.env` is ignored by git and loaded locally at startup. Set `GNANI_API_KEY` server-side before voice use and `ADMIN_TOKEN` before imports. Configure `ALLOWED_ORIGINS` for the frontend. Do not place keys in frontend code, URLs, git, or browser requests.
 
-### Quick demo (Windows)
+### Live mandi prices
 
-1. Put your key in `.env`: `GNANI_API_KEY=your-key-here`. Keep `DEMO_DATA=1` to load demo mandis near Agra (UP) and Kolar (Karnataka) with today's synthetic prices.
+With `LIVE_PRICES=1` and a free `DATA_GOV_API_KEY` (data.gov.in → sign up → My Account), every comparison:
+
+1. Reverse-geocodes the farm to its state and district (OpenStreetMap Nominatim, max 1 request/second, cached).
+2. Pulls today's AGMARKNET quotes for **all commodities in that state** from data.gov.in. The server caches this for `FEED_TTL_SECONDS` (default 300). The page auto-refreshes every 5 seconds from that cache, so the government API is never hammered.
+3. Locates each mandi in the feed: the farmer's district first, then the rest of the state, then mandis in neighbouring-state districts within the search radius. Coordinates are cached in SQLite, so each mandi is located once. Results grow while this runs, and the 5-second refresh shows them.
+4. Builds the road graph (OSRM, cached), runs Dijkstra, and ranks by price × quantity − transport.
+
+**No data.gov.in key?** The app then reads the same AGMARKNET daily quotes from the public aggregator **commodityonline.com** ([app/aggregator.py](app/aggregator.py)). It reads the crop's state page for the latest quotes, then individual mandi pages in the background. It sends one request at a time with a 1.5 s pause, uses an honest User-Agent, keeps results cached for `FEED_TTL_SECONDS`, and only fetches pages robots.txt allows. The aggregator publishes an *average* price, which is used as the quote. Force a source with `PRICE_SOURCE=datagov` or `PRICE_SOURCE=commodityonline` (default `auto`).
+
+If no source answers, the app says prices are unavailable rather than inventing any. About 49 commodities are recognised, using AGMARKNET names, Hindi, Hinglish, and some Kannada/Tamil/Telugu.
+
+### Transport: own vehicle or transporters
+
+The farmer is asked whether they have their own vehicle (by voice, with tap-able answers too).
+
+- **No vehicle:** the load picks a vehicle class (e.g. 500 kg needs a 3-wheeler tempo; 750 kg a Tata Ace). The app then compares Porter, WheelsEye and Delhivery options. Each transporter has a rate card in [app/transport.py](app/transport.py): base fare, per-km and per-minute charges, minimum fare, service range, plus estimated tolls. **These are estimates, not live quotes.** None of these companies publishes a public quote API, so the rate card is where a business API would plug in.
+- **Own vehicle** (bike, car, tractor-trolley, tempo, Tata Ace, pickup, truck): round-trip fuel (mileage × `DIESEL_PRICE`/`PETROL_PRICE`), estimated tolls, and a per-trip share of permit, fitness and insurance costs. Local RTO rules for carrying goods should be checked.
+
+Routing: the farm and the mandis form one physical road graph. Each transport option puts its own rupee cost on every link (per-km, per-minute and toll charges), runs Dijkstra from the farm, then adds fixed fares and minimums. The result is a matrix of *you keep = price × quantity − transport* for every mandi × option, and the best cell wins. With `TOMTOM_API_KEY`, farm-to-mandi legs use live traffic travel times, and the map shows a live traffic layer (relayed through the server, so the key never reaches the browser). Without it, travel times are OSRM free-flow estimates.
+
+### Quick start (Windows)
+
+1. Put your key in `.env`: `GNANI_API_KEY=your-key-here`. Keep `LIVE_PRICES=1`.
 2. `pip install -r requirements.txt`
 3. `python -m uvicorn app.main:app --port 8000`
 4. Open http://localhost:8000. Tap the mic, speak (e.g. "मेरे 500 किलो आलू कहाँ बेचूँ?"), tap again to stop.
