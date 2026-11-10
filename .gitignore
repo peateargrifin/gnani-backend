@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+__pycache__/
+.pytest_cache/
+.venv/
+*.db
+*.sqlite*
+*.pyc
+*.wav
+*.mp3
+!.gitkeep

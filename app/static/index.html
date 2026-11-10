@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandi Saathi</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&family=Noto+Sans+Devanagari:wght@400;600&family=Noto+Sans+Kannada:wght@400;600&family=Noto+Sans+Tamil:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f3ea; --card:#fffdf7; --ink:#1f2a1c; --muted:#5f6b58; --line:#e3dccb;
+  --green:#2f7d32; --green-d:#1f5a23; --green-l:#e4f2e1; --amber:#c77d0a; --amber-l:#fdf1d8;
+  --red:#b3261e; --red-l:#fbe3e1; --blue:#1d5fa8;
+  --radius:16px; --shadow:0 2px 0 rgba(31,42,28,.06),0 8px 24px rgba(31,42,28,.06);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans","Noto Sans Devanagari","Noto Sans Kannada","Noto Sans Tamil",system-ui,sans-serif;line-height:1.45}
+header{background:var(--green-d);color:#fff;padding:14px 16px}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:0}
+.logo{font-weight:800;font-size:1.35rem;letter-spacing:-.01em}
+.logo small{display:block;font-weight:400;font-size:.8rem;opacity:.8}
+.badge{margin-left:auto;font-size:.78rem;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.14)}
+.badge.ok{background:#3c9a40}.badge.bad{background:var(--red)}
+main{padding:18px 0 40px}
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.card+.card{margin-top:14px}
+h2{font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.ask{text-align:center}
+#mic{width:132px;height:132px;border-radius:50%;border:none;background:var(--green);color:#fff;cursor:pointer;
+  display:grid;place-items:center;margin:6px auto 10px;box-shadow:0 6px 0 var(--green-d);transition:transform .08s}
+#mic:active{transform:translateY(3px);box-shadow:0 3px 0 var(--green-d)}
+#mic svg{width:56px;height:56px}
+#mic.rec{background:var(--red);box-shadow:0 6px 0 #7d1a15;animation:pulse 1.2s infinite}
+@keyframes pulse{0%{outline:0 solid rgba(179,38,30,.35)}100%{outline:22px solid rgba(179,38,30,0)}}
+.hint{color:var(--muted);font-size:.9rem;margin:0}
+.timer{font-variant-numeric:tabular-nums;font-weight:600}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+input,select,button{font:inherit}
+input,select{border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;min-width:0}
+.textask{display:flex;gap:8px;margin-top:14px}
+.textask input{flex:1}
+.btn{border:none;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer;background:var(--green);color:#fff}
+.btn:hover{background:var(--green-d)}
+.btn.ghost{background:transparent;color:var(--green-d);border:1px solid var(--line)}
+.btn.ghost:hover{background:var(--green-l)}
+.btn.amber{background:var(--amber)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;justify-content:center}
+.chip{font-size:.82rem;border:1px dashed var(--line);border-radius:99px;padding:5px 10px;background:#fff;cursor:pointer;color:var(--ink)}
+.chip:hover{border-color:var(--green);background:var(--green-l)}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:.82rem;color:var(--muted);flex:1;min-width:120px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{display:flex;gap:10px;padding:7px 0;color:var(--muted);font-size:.92rem;align-items:flex-start}
+.steps li .dot{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:.7rem;margin-top:1px}
+.steps li.run{color:var(--ink)} .steps li.run .dot{border-color:var(--amber);border-top-color:transparent;animation:spin .8s linear infinite}
+.steps li.done{color:var(--ink)} .steps li.done .dot{background:var(--green);border-color:var(--green);color:#fff}
+.steps li.err{color:var(--red)} .steps li.err .dot{background:var(--red);border-color:var(--red);color:#fff}
+.steps .meta{display:block;font-size:.8rem;color:var(--muted)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.transcript{background:var(--amber-l);border-radius:12px;padding:10px 12px;font-size:1.05rem;margin:0 0 10px;display:none}
+.best{background:var(--green-l);border:2px solid var(--green);border-radius:var(--radius);padding:16px;display:none}
+.best .k{font-size:.8rem;color:var(--green-d);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.best .m{font-size:1.6rem;font-weight:800;margin:2px 0}
+.best .n{font-size:2.2rem;font-weight:800;color:var(--green-d);font-variant-numeric:tabular-nums}
+.best .say{margin:10px 0 0;font-size:1rem}
+.math{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.math div{background:#fff;border-radius:10px;padding:8px;font-size:.78rem;color:var(--muted)}
+.math b{display:block;font-size:1rem;color:var(--ink);font-variant-numeric:tabular-nums}
+#map{height:320px;border-radius:12px;border:1px solid var(--line);margin-top:14px;z-index:0}
+table{width:100%;border-collapse:collapse;font-size:.9rem;margin-top:12px}
+th,td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+th:first-child,td:first-child{text-align:left}
+th{font-size:.75rem;color:var(--muted);font-weight:600}
+tr.top td{font-weight:700;color:var(--green-d)}
+.tbl{overflow-x:auto}
+.flag{font-size:.7rem;color:var(--amber)}
+.note{font-size:.8rem;color:var(--muted);margin:10px 0 0}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+.toast{background:var(--red-l);color:var(--red);border-radius:10px;padding:10px 12px;margin-top:10px;display:none;font-size:.9rem}
+.ok-box{background:var(--green-l);color:var(--green-d);border-radius:10px;padding:10px 12px;margin-top:10px;font-size:.9rem;display:none}
+details summary{cursor:pointer;color:var(--muted);font-size:.85rem;margin-top:8px}
+footer{color:var(--muted);font-size:.78rem;text-align:center;padding:0 16px 24px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="logo">🌾 Mandi Saathi<small>Bolo, aur sabse achha mandi bhav paao · Speak, get the best mandi</small></div>
+  <span id="status" class="badge">checking…</span>
+</div></header>
+
+<main class="wrap">
+<div class="grid">
+  <section>
+    <div class="card ask">
+      <h2>1 · Ask in your language</h2>
+      <button id="mic" aria-label="Tap to speak">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3 3 0 0 0 3-3V5a3 3 0 0 0-6 0v7a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.92V22h2v-3.08A7 7 0 0 0 19 12h-2Z"/></svg>
+      </button>
+      <p class="hint" id="micHint">Tap and speak · बोलने के लिए दबाएँ · ಮಾತನಾಡಲು ಒತ್ತಿ</p>
+      <div class="textask">
+        <input id="q" placeholder="Or type: 500 kilo aloo kahan bechu?" aria-label="Type your question">
+        <button class="btn" id="askBtn">Ask</button>
+      </div>
+      <div class="chips" id="examples">
+        <button class="chip">मेरे 500 किलो आलू कहाँ बेचूँ?</button>
+        <button class="chip">5 quintal pyaz ka best bhav kahan milega?</button>
+        <button class="chip">ನನ್ನ 800 ಕೆಜಿ ಟೊಮೆಟೊ ಎಲ್ಲಿ ಮಾರಬೇಕು?</button>
+        <button class="chip">Where can I sell 2 tons of tomato?</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>2 · Your farm and details</h2>
+      <div class="row">
+        <label class="f">Crop
+          <select id="crop"><option value="">—</option><option value="potato">Potato · आलू</option><option value="onion">Onion · प्याज़</option><option value="tomato">Tomato · टमाटर</option><option value="sugarcane">Sugarcane · गन्ना</option></select>
+        </label>
+        <label class="f">Quantity (kg)<input id="qty" type="number" min="1" step="1" placeholder="500"></label>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <label class="f">Farm location
+          <select id="place">
+            <option value="gps">📍 My current location</option>
+            <option value="27.10,78.15">Village near Agra, UP (demo)</option>
+            <option value="13.25,78.05">Village near Kolar, Karnataka (demo)</option>
+          </select>
+          <span id="locInfo" style="font-size:.78rem">Asking for location permission…</span>
+        </label>
+        <label class="f">Reply language
+          <select id="lang"><option value="auto">Same as farmer</option></select>
+        </label>
+      </div>
+      <details>
+        <summary>Transport cost settings</summary>
+        <div class="row" style="margin-top:8px">
+          <label class="f">₹ per km<input id="rate" type="number" min="0" value="25"></label>
+          <label class="f">Base fee ₹<input id="base" type="number" min="0" value="300"></label>
+          <label class="f">Search radius km<input id="radius" type="number" min="10" max="1000" value="150"></label>
+        </div>
+      </details>
+      <button class="btn" id="go" style="width:100%;margin-top:12px">Find best mandi</button>
+    </div>
+
+    <div class="card">
+      <h2>Agent steps</h2>
+      <ol class="steps" id="steps">
+        <li data-s="hear"><span class="dot">1</span><span>Listen · Gnani Prisma v3.0<span class="meta"></span></span></li>
+        <li data-s="intent"><span class="dot">2</span><span>Understand crop and quantity<span class="meta"></span></span></li>
+        <li data-s="prices"><span class="dot">3</span><span>Check nearby mandi prices<span class="meta"></span></span></li>
+        <li data-s="route"><span class="dot">4</span><span>Road distance and freight cost<span class="meta"></span></span></li>
+        <li data-s="speak"><span class="dot">5</span><span>Speak the answer · Gnani Timbre v3.0<span class="meta"></span></span></li>
+      </ol>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Answer</h2>
+      <p class="transcript" id="transcript"></p>
+      <div class="empty" id="empty">Ask a question to compare mandis near you.</div>
+      <div class="best" id="best">
+        <div class="k">Most profitable mandi</div>
+        <div class="m" id="bestName"></div>
+        <div class="n" id="bestNet"></div>
+        <div class="math">
+          <div>Sale value<b id="bGross"></b></div>
+          <div>Transport<b id="bFreight"></b></div>
+          <div>Distance<b id="bDist"></b></div>
+        </div>
+        <p class="note" id="bRoute" style="color:var(--green-d)"></p>
+        <p class="say" id="say"></p>
+        <div class="row" style="margin-top:10px">
+          <button class="btn ghost" id="replay">🔊 Play again</button>
+          <button class="btn amber" id="truck">🚚 Request a truck</button>
+        </div>
+        <div class="ok-box" id="truckOk"></div>
+      </div>
+      <div class="toast" id="err"></div>
+      <audio id="player" hidden></audio>
+      <div id="map"></div>
+      <div class="tbl"><table id="tbl" hidden>
+        <thead><tr><th>Mandi</th><th>₹/quintal</th><th>Shortest km</th><th>Sale value<br><small>price × qty</small></th><th>Transport</th><th>You keep</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <p class="note" id="disc"></p>
+    </div>
+  </section>
+</div>
+</main>
+<footer>Live prices: Government of India AGMARKNET daily mandi prices via data.gov.in (₹/quintal, modal price). Mandi locations: © OpenStreetMap contributors (Nominatim). Prices marked <b>demo</b> are synthetic. A truck request goes to a dispatcher for manual matching; no vehicle is booked automatically. Voice by Gnani Prisma v3.0 (speech-to-text) and Timbre v3.0 (text-to-speech).</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const $ = s => document.querySelector(s);
+const API = "";
+const state = { lang: "en-IN", lastResult: null, audioUrl: null, map: null, layer: null };
+const fmt = n => "₹" + Math.round(n).toLocaleString("en-IN");
+
+// ---------- helpers ----------
+async function api(path, opts = {}) {
+  const r = await fetch(API + path, opts);
+  if (!r.ok) {
+    let msg = r.status + "";
+    try { const j = await r.json(); msg = typeof j.detail === "string" ? j.detail : JSON.stringify(j.detail); } catch {}
+    throw new Error(msg);
+  }
+  return r;
+}
+function step(name, cls, meta = "") {
+  const li = document.querySelector(`[data-s="${name}"]`);
+  li.className = cls; li.querySelector(".meta").textContent = meta;
+  if (cls === "done") li.querySelector(".dot").textContent = "✓";
+  else if (cls === "err") li.querySelector(".dot").textContent = "!";
+  else li.querySelector(".dot").textContent = "";
+}
+function resetSteps() {
+  document.querySelectorAll("#steps li").forEach((li, i) => { li.className = ""; li.querySelector(".meta").textContent = ""; li.querySelector(".dot").textContent = i + 1; });
+}
+function showErr(msg) { const e = $("#err"); e.textContent = msg; e.style.display = msg ? "block" : "none"; }
+function guessLang(text) {
+  if (/[ಀ-೿]/.test(text)) return "kn-IN";
+  if (/[஀-௿]/.test(text)) return "ta-IN";
+  if (/[ऀ-ॿ]/.test(text)) return "hi-IN";
+  if (/\b(aloo|alu|pyaz|pyaaz|tamatar|ganna|kahan|kahaan|bechu|bechun|bhav|kitna|mera|mere|kilo)\b/i.test(text)) return "hi-IN";
+  return "en-IN";
+}
+function replyLang(detected) {
+  const chosen = $("#lang").value;
+  return chosen === "auto" ? (detected || "en-IN") : chosen;
+}
+
+// ---------- startup ----------
+(async () => {
+  try {
+    const h = await (await api("/health")).json();
+    const b = $("#status");
+    b.textContent = h.gnani_configured ? "Gnani voice ready" : "Gnani key missing";
+    b.className = "badge " + (h.gnani_configured ? "ok" : "bad");
+    const langs = await (await api("/v1/languages")).json();
+    for (const [code, name] of Object.entries(langs)) $("#lang").add(new Option(name, code));
+  } catch (e) { $("#status").textContent = "API offline"; $("#status").className = "badge bad"; }
+  state.map = L.map("map", { zoomControl: true }).setView([27.2, 78.2], 8);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: "© OpenStreetMap" }).addTo(state.map);
+  state.layer = L.layerGroup().addTo(state.map);
+})();
+
+// ---------- location ----------
+state.gps = null;
+function requestGps() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error("This browser has no location support"));
+    navigator.geolocation.getCurrentPosition(
+      p => { state.gps = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy }; res(state.gps); },
+      e => rej(new Error(e.code === 1 ? "Location permission denied" : "Could not get your location")),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+  });
+}
+function showLoc() {
+  const info = $("#locInfo");
+  if ($("#place").value !== "gps") { info.textContent = "Demo village"; return; }
+  info.textContent = state.gps
+    ? `📍 ${state.gps.lat.toFixed(4)}, ${state.gps.lon.toFixed(4)} (±${Math.round(state.gps.acc)} m)`
+    : "Location not shared yet";
+}
+async function getLocation() {
+  const v = $("#place").value;
+  if (v !== "gps") { const [lat, lon] = v.split(",").map(Number); return { lat, lon }; }
+  return state.gps || await requestGps();
+}
+// Ask for permission as soon as the page opens; fall back to a demo village if refused.
+requestGps().then(showLoc).catch(e => {
+  $("#place").value = "27.10,78.15";
+  $("#locInfo").textContent = `${e.message}. Using demo village.`;
+});
+$("#place").onchange = () => {
+  if ($("#place").value === "gps" && !state.gps) {
+    $("#locInfo").textContent = "Asking for location permission…";
+    requestGps().then(showLoc).catch(e => { $("#locInfo").textContent = e.message + ". Allow location in the browser address bar."; });
+  } else showLoc();
+};
+
+// ---------- WAV recorder (16 kHz mono, which Prisma accepts) ----------
+const rec = { ctx: null, stream: null, node: null, chunks: [], timer: null, t0: 0 };
+async function startRec() {
+  rec.stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true } });
+  rec.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  const src = rec.ctx.createMediaStreamSource(rec.stream);
+  rec.node = rec.ctx.createScriptProcessor(4096, 1, 1);
+  rec.chunks = [];
+  rec.node.onaudioprocess = e => rec.chunks.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+  src.connect(rec.node); rec.node.connect(rec.ctx.destination);
+  rec.t0 = Date.now();
+  $("#mic").classList.add("rec");
+  rec.timer = setInterval(() => {
+    const s = Math.floor((Date.now() - rec.t0) / 1000);
+    $("#micHint").innerHTML = `<span class="timer">● ${s}s</span> listening… tap again to stop`;
+    if (s >= 25) stopRec();
+  }, 250);
+}
+function stopRec() {
+  clearInterval(rec.timer);
+  $("#mic").classList.remove("rec");
+  $("#micHint").textContent = "Tap and speak · बोलने के लिए दबाएँ · ಮಾತನಾಡಲು ಒತ್ತಿ";
+  if (!rec.ctx) return null;
+  rec.node.disconnect(); rec.stream.getTracks().forEach(t => t.stop());
+  const rate = rec.ctx.sampleRate; rec.ctx.close(); rec.ctx = null;
+  const len = rec.chunks.reduce((a, c) => a + c.length, 0);
+  const all = new Float32Array(len); let o = 0; for (const c of rec.chunks) { all.set(c, o); o += c.length; }
+  return encodeWav(downsample(all, rate, 16000), 16000);
+}
+function downsample(buf, from, to) {
+  if (from === to) return buf;
+  const ratio = from / to, out = new Float32Array(Math.floor(buf.length / ratio));
+  for (let i = 0; i < out.length; i++) {
+    const s = Math.floor(i * ratio), e = Math.min(Math.floor((i + 1) * ratio), buf.length);
+    let sum = 0; for (let j = s; j < e; j++) sum += buf[j]; out[i] = sum / Math.max(1, e - s);
+  }
+  return out;
+}
+function encodeWav(samples, rate) {
+  const b = new ArrayBuffer(44 + samples.length * 2), v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, "RIFF"); v.setUint32(4, 36 + samples.length * 2, true); w(8, "WAVE"); w(12, "fmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true); v.setUint32(24, rate, true);
+  v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true); w(36, "data"); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) { const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  return new Blob([v], { type: "audio/wav" });
+}
+
+$("#mic").onclick = async () => {
+  showErr("");
+  if (rec.ctx) {
+    const wav = stopRec();
+    if (wav) await handleAudio(wav);
+    return;
+  }
+  try { resetSteps(); step("hear", "run", "Recording…"); await startRec(); }
+  catch (e) { step("hear", "err", "Microphone not available"); showErr("Microphone blocked. Allow mic access, or type your question."); }
+};
+
+// ---------- pipeline ----------
+async function handleAudio(wav) {
+  step("hear", "run", "Sending audio to Gnani Prisma v3.0…");
+  try {
+    const fd = new FormData(); fd.append("file", wav, "question.wav"); fd.append("language", "indic-auto");
+    const t = performance.now();
+    const r = await (await api("/v1/voice/transcribe", { method: "POST", body: fd })).json();
+    step("hear", "done", `${r.model || "prisma-v3.0"} · ${r.language || "auto"} · ${((performance.now() - t) / 1000).toFixed(1)}s`);
+    const lang = (r.language && r.language in { "en-IN": 1, "hi-IN": 1, "kn-IN": 1, "ta-IN": 1, "te-IN": 1, "mr-IN": 1, "bn-IN": 1, "gu-IN": 1, "pa-IN": 1, "ml-IN": 1 }) ? r.language : guessLang(r.transcript);
+    await understood(r.transcript, r.intent, lang);
+  } catch (e) { step("hear", "err", e.message); showErr("Could not transcribe: " + e.message); }
+}
+async function askText(text) {
+  if (!text.trim()) return;
+  resetSteps(); showErr("");
+  step("hear", "done", "Typed question");
+  try {
+    const r = await (await api("/v1/intent", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text }) })).json();
+    await understood(text, r.intent, guessLang(text));
+  } catch (e) { showErr(e.message); }
+}
+async function understood(transcript, intent, lang) {
+  state.lang = lang;
+  const tr = $("#transcript"); tr.textContent = "“" + transcript + "”"; tr.style.display = "block";
+  if (intent.commodity) $("#crop").value = intent.commodity;
+  if (intent.quantity_kg) $("#qty").value = intent.quantity_kg;
+  if (intent.needs_clarification) {
+    const miss = [!intent.commodity && "crop", !intent.quantity_kg && "quantity"].filter(Boolean).join(" and ");
+    step("intent", "err", `Missing ${miss}. Choose it below and press “Find best mandi”.`);
+    return;
+  }
+  step("intent", "done", `${intent.commodity} · ${intent.quantity_kg.toLocaleString("en-IN")} kg`);
+  await compare();
+}
+async function compare() {
+  const crop = $("#crop").value, qty = Number($("#qty").value);
+  if (!crop || !qty) { showErr("Choose a crop and quantity first."); return; }
+  showErr(""); $("#truckOk").style.display = "none";
+  step("prices", "run", "Looking up today's quotes…");
+  let loc;
+  try { loc = await getLocation(); } catch (e) { step("prices", "err", e.message); showErr(e.message); return; }
+  step("route", "run", "Asking the road router…");
+  const lang = replyLang(state.lang);
+  let res;
+  try {
+    res = await (await api("/v1/compare", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      commodity: crop, quantity_kg: qty, latitude: loc.lat, longitude: loc.lon, language: lang,
+      radius_km: Number($("#radius").value) || 150,
+      transport_rate_per_km: Number($("#rate").value), transport_base_fee: Number($("#base").value) }) })).json();
+  } catch (e) { step("prices", "err", e.message); step("route", ""); showErr(e.message); return; }
+  state.lastResult = res;
+  const lv = res.live || {}, src = res.price_source.startsWith("data.gov.in") ? `Govt AGMARKNET (data.gov.in)${res.farmer_state ? " · " + res.farmer_state : ""}` : "demo prices";
+  if (lv.status === "feed_unavailable") showErr(`Live government feed unavailable (${lv.error}). ${res.no_quotes ? "" : "Showing demo prices instead."}`);
+  const locating = lv.markets_still_locating ? ` · locating ${lv.markets_still_locating} more mandis, ask again in a minute` : "";
+  step("prices", res.no_quotes ? "err" : "done",
+    (res.no_quotes ? "No recent quotes within range" : `${res.ranking.length} mandis with fresh quotes`) + ` · ${src}${locating}${lv.sample_key ? " · sample key (10 rows max)" : ""}`);
+  const g = res.graph, road = res.ranking[0] && res.ranking[0].distance_method === "road_route";
+  step("route", res.no_quotes ? "" : "done", res.no_quotes ? "" :
+    `Dijkstra on ${g.nodes.length} places, ${g.edges.length} ${road ? "road (OSRM)" : "straight-line"} links · ₹${res.transport.rate_per_km}/km + ₹${res.transport.base_fee}`);
+  render(res, loc);
+  if (res.spoken_summary) await speak(res.spoken_summary, res.summary_language);
+}
+async function speak(text, lang) {
+  step("speak", "run", "Generating voice…");
+  try {
+    const t = performance.now();
+    const blob = await (await api("/v1/voice/speak", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ text, language: lang, voice: "Shivani" }) })).blob();
+    if (state.audioUrl) URL.revokeObjectURL(state.audioUrl);
+    state.audioUrl = URL.createObjectURL(blob);
+    const p = $("#player"); p.src = state.audioUrl; p.play().catch(() => {});
+    step("speak", "done", `timbre-v3.0 · Shivani · ${lang} · ${((performance.now() - t) / 1000).toFixed(1)}s`);
+  } catch (e) { step("speak", "err", e.message); }
+}
+
+// ---------- render ----------
+function render(res, loc) {
+  $("#empty").style.display = res.no_quotes ? "block" : "none";
+  $("#empty").textContent = res.no_quotes ? "No mandi with fresh quotes for this crop within your radius. Demo prices cover mandis near Agra (UP) and Kolar (Karnataka): pick a demo village, increase the radius, or load real prices with data.gov.in sync." : "";
+  $("#best").style.display = res.best ? "block" : "none";
+  $("#tbl").hidden = !res.ranking.length;
+  $("#disc").textContent = res.disclaimer;
+  if (res.best) {
+    const b = res.best;
+    $("#bestName").textContent = `${b.market}, ${b.district}`;
+    $("#bestNet").textContent = fmt(b.estimated_net_inr);
+    $("#bGross").textContent = fmt(b.gross_inr);
+    $("#bFreight").textContent = "−" + fmt(b.estimated_transport_inr);
+    $("#bDist").textContent = b.distance_km + " km" + (b.distance_method === "road_route" ? "" : "*");
+    $("#say").textContent = res.spoken_summary;
+    $("#bRoute").textContent = "Shortest route (Dijkstra): " + b.route.join(" → ");
+  }
+  const tb = $("#tbl tbody"); tb.innerHTML = "";
+  res.ranking.forEach((r, i) => {
+    const tr = document.createElement("tr"); if (i === 0) tr.className = "top";
+    const src = r.source === "demo_synthetic" ? ' <span class="flag">demo</span>' : ` <span class="flag" style="color:var(--green)">live ${r.observed_on.slice(5)}</span>`;
+    const via = r.route.length > 2 ? `<br><small style="color:var(--muted);font-weight:400">via ${r.route.slice(1, -1).join(", ")}</small>` : "";
+    tr.innerHTML = `<td>${i + 1}. ${r.market}${src}${via}</td><td>${Math.round(r.quote_inr_per_quintal)}</td><td>${r.distance_km}${r.distance_method === "road_route" ? "" : "*"}</td><td>${fmt(r.gross_inr)}</td><td>−${fmt(r.estimated_transport_inr)}</td><td><b>${fmt(r.estimated_net_inr)}</b></td>`;
+    tb.appendChild(tr);
+  });
+  // map
+  state.layer.clearLayers();
+  const pts = [[loc.lat, loc.lon]];
+  L.circleMarker([loc.lat, loc.lon], { radius: 9, color: "#1d5fa8", fillColor: "#1d5fa8", fillOpacity: .9 }).bindTooltip("Your farm", { permanent: true, direction: "top" }).addTo(state.layer);
+  res.ranking.forEach((r, i) => {
+    const top = i === 0;
+    pts.push([r.latitude, r.longitude]);
+    L.circleMarker([r.latitude, r.longitude], { radius: top ? 11 : 7, color: top ? "#1f5a23" : "#c77d0a", fillColor: top ? "#2f7d32" : "#f0b04a", fillOpacity: .9, weight: 2 })
+      .bindTooltip(`${i + 1}. ${r.market} · ${fmt(r.estimated_net_inr)}`, { permanent: top, direction: "top" }).addTo(state.layer);
+  });
+  // Graph links that Dijkstra searched (faint), then the winning route (bold).
+  const nodes = res.graph.nodes;
+  res.graph.edges.forEach(([a, b, km]) => L.polyline([[nodes[a].latitude, nodes[a].longitude], [nodes[b].latitude, nodes[b].longitude]],
+    { color: "#8a8f80", weight: 1, opacity: .45 }).bindTooltip(`${nodes[a].name} – ${nodes[b].name}: ${km} km`).addTo(state.layer));
+  if (res.best) {
+    const line = res.graph.best_route_geometry || res.best.route_nodes.map(i => [nodes[i].latitude, nodes[i].longitude]);
+    L.polyline(line, { color: "#2f7d32", weight: 5, opacity: .9 }).addTo(state.layer);
+  }
+  state.map.fitBounds(pts, { padding: [30, 30], maxZoom: 11 });
+}
+
+// ---------- truck request ----------
+$("#truck").onclick = async () => {
+  const r = state.lastResult; if (!r || !r.best) return;
+  $("#truck").disabled = true;
+  try {
+    const d = await (await api("/v1/dispatch-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({
+      market_id: r.best.market_id, commodity: r.commodity, quantity_kg: r.quantity_kg, contact: "DEMO-FARMER-001",
+      note: `Pickup for ${r.quantity_kg} kg ${r.commodity} to ${r.best.market}` }) })).json();
+    const box = $("#truckOk");
+    box.innerHTML = `✅ Truck request sent to the dispatcher<br><small>Request ${d.id.slice(0, 8)} · status: ${d.status.replaceAll("_", " ")} · ${d.message}</small>`;
+    box.style.display = "block";
+  } catch (e) { showErr("Truck request failed: " + e.message); }
+  $("#truck").disabled = false;
+};
+
+// ---------- wiring ----------
+$("#replay").onclick = () => { const p = $("#player"); if (p.src) { p.currentTime = 0; p.play(); } };
+$("#go").onclick = () => { resetSteps(); step("hear", "done", "Manual entry"); step("intent", "done", "Manual entry"); compare(); };
+$("#askBtn").onclick = () => askText($("#q").value);
+$("#q").addEventListener("keydown", e => { if (e.key === "Enter") askText($("#q").value); });
+document.querySelectorAll("#examples .chip").forEach(c => c.onclick = () => {
+  $("#q").value = c.textContent;
+  if (/[ಀ-೿]/.test(c.textContent)) $("#place").value = "13.25,78.05";
+  else $("#place").value = "27.10,78.15";
+  askText(c.textContent);
+});
+</script>
+</body>
+</html>
