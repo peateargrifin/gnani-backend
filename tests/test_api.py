@@ -82,6 +82,31 @@ def test_conversation_replies_and_vehicle_choice():
     assert parse_reply("chhota hathi hai")["own_vehicle"] == "tata_ace"
     assert recommended_vehicle(15) == "two_wheeler" and recommended_vehicle(500) == "three_wheeler" and recommended_vehicle(2000) == "tata_407"
 
+MB_STATE = """<table><tr><th>Commodity</th><th>Potato</th></tr></table>
+<table><tr><th>Date</th><th>Districts</th><th>Markets</th><th>Commodity</th><th>Variety/Grade</th><th>Min Price</th><th>Max Price</th><th>Modal Price</th></tr>
+<tr><td>10/11/2026</td><td>Sambhal</td><td>Sambhal</td><td>Potato</td><td>Other FAQ</td><td>₹ 700</td><td>₹ 700</td><td>₹ 700</td></tr></table>
+<a href="/en/commodity/aalu/uttar-pradesh/agra">Agra</a><a href="/en/commodity/aalu/uttar-pradesh/mathura">Mathura</a>"""
+MB_DISTRICT = """<table><tr><th>Date</th><th>Markets</th><th>Commodity</th><th>Variety/Grade</th><th>Min Price</th><th>Max Price</th><th>Modal Price</th></tr>
+<tr><td>10/11/2026</td><td>Agra</td><td>Potato</td><td>Other FAQ</td><td>₹ 500</td><td>₹ 600</td><td>₹ 512</td></tr>
+<tr><td>09/11/2026</td><td>Agra</td><td>Potato</td><td>Other FAQ</td><td>₹ 500</td><td>₹ 500</td><td>₹ 1,500</td></tr></table>"""
+
+@pytest.mark.asyncio
+async def test_mandibhav_reads_state_and_farmers_district(monkeypatch):
+    from app import mandibhav
+    monkeypatch.setattr(mandibhav, "_cache", {})
+    monkeypatch.setattr(mandibhav, "PAUSE_SECONDS", 0)
+    urls = []
+    def handler(request):
+        urls.append(request.url.path)
+        return httpx.Response(200, text=MB_DISTRICT if request.url.path.endswith("/agra") else MB_STATE)
+    async def locate(client, district, state):
+        return None
+    async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
+        records, _ = await mandibhav.rows(client, "potato", "Uttar Pradesh", near=(27.1, 78.1, 150, "Agra", locate))
+    assert urls == ["/en/commodity/aalu/uttar-pradesh", "/en/commodity/aalu/uttar-pradesh/agra"]
+    got = sorted((r["market"], r["district"], r["arrival_date"], r["modal_price"]) for r in records)
+    assert got == [("Agra", "Agra", "10/11/2026", 512.0), ("Sambhal", "Sambhal", "10/11/2026", 700.0)]
+
 def test_processed_products_are_not_raw_crops():
     from app.core import crop_name
     for product in ["Sweet Potato", "Mustard Oil", "Wheat Atta", "Black Gram Dal (Urd Dal)", "Coconut Oil", "Onion Green"]:

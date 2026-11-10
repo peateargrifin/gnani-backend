@@ -17,7 +17,7 @@ import time
 
 import httpx
 
-from . import aggregator
+from . import aggregator, mandibhav
 from .core import connect, distance_km, ingest, now
 
 RESOURCE = "https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070"  # Current Daily Price of Various Commodities from Various Markets (Mandi)
@@ -72,27 +72,55 @@ def api_key():
 def source():
     """data.gov.in when the user has configured a key, otherwise the public aggregator."""
     choice = os.getenv("PRICE_SOURCE", "auto").casefold()
-    if choice in ("datagov", "commodityonline"):
+    if choice in ("datagov", "mandibhav", "commodityonline"):
         return choice
-    return "datagov" if os.getenv("DATA_GOV_API_KEY") else "commodityonline"
+    return "datagov" if os.getenv("DATA_GOV_API_KEY") else "aggregators"
+
+_active_label = mandibhav.SOURCE
 
 def source_label():
-    return "data.gov.in (AGMARKNET)" if source() == "datagov" else aggregator.SOURCE
+    return "data.gov.in (AGMARKNET)" if source() == "datagov" else _active_label
 
-async def feed(client, state, crop, deep=False):
-    """(records, age_seconds) for a state from the active source. Ingests what it can."""
+def _aggregators():
+    """Public aggregators in the order they are tried."""
+    choice = source()
+    if choice == "mandibhav":
+        return [mandibhav]
+    if choice == "commodityonline":
+        return [aggregator]
+    return [mandibhav, aggregator]
+
+async def feed(client, state, crop, deep=False, near=None):
+    """(records, age_seconds) for a state from the active source. Ingests what it can.
+    Aggregators are tried in order; the first one with quotes wins."""
+    global _active_label
     state = canonical_state(state)
     if source() == "datagov":
         return await state_rows(client, state)
-    try:
-        records, age = await aggregator.rows(client, crop, state, deep)
-    except aggregator.Unavailable as exc:
-        raise FeedUnavailable(f"{aggregator.SOURCE}: {exc}") from exc
-    ingest(records, aggregator.SOURCE)
-    return records, age
+    errors, mods = [], _aggregators()
+    for i, mod in enumerate(mods):
+        try:
+            if mod is mandibhav:
+                records, age = await mod.rows(client, crop, state, deep, (*near, geocode_district) if near else None)
+            else:
+                records, age = await mod.rows(client, crop, state, deep)
+        except (mandibhav.Unavailable, aggregator.Unavailable) as exc:
+            errors.append(f"{mod.SOURCE}: {exc}")
+            continue
+        if records or i == len(mods) - 1:
+            for r in records:
+                r["_source"] = mod.SOURCE
+            ingest(records, mod.SOURCE)
+            _active_label = mod.SOURCE
+            return records, age
+    raise FeedUnavailable(" | ".join(errors) or "no price source answered")
 
 def _ingest(records):
-    ingest(records, "data.gov.in" if source() == "datagov" else aggregator.SOURCE)
+    by_source = {}
+    for r in records:
+        by_source.setdefault(r.get("_source", "data.gov.in"), []).append(r)
+    for label, rows in by_source.items():
+        ingest(rows, label)
 
 def feed_ttl():
     return float(os.getenv("FEED_TTL_SECONDS", "300"))
@@ -279,7 +307,7 @@ async def _locate(client, ident):
 async def _locate_area(state, district, lat, lon, radius, crop, progress):
     async with httpx.AsyncClient() as client:
         # 1. Farmer's own state, own district first.
-        records, _ = await feed(client, state, crop, deep=True)
+        records, _ = await feed(client, state, crop, deep=True, near=(lat, lon, radius, district))
         todo = [m for m in _market_ids(records) if not _registered(m)]
         todo.sort(key=lambda m: norm_state(m[1]) != norm_state(district or ""))
         progress["total"] += len(todo)
@@ -292,7 +320,7 @@ async def _locate_area(state, district, lat, lon, radius, crop, progress):
         # 2. Neighbouring states: only districts within reach of the farm.
         for nb in STATE_NEIGHBOURS.get(canonical_state(state), []):
             try:
-                nb_records, _ = await feed(client, nb, crop)
+                nb_records, _ = await feed(client, nb, crop, deep=True, near=(lat, lon, radius, None))
             except FeedUnavailable:
                 continue
             idents = [m for m in _market_ids(nb_records) if not _registered(m)]
@@ -321,9 +349,10 @@ async def ensure_area(client, lat, lon, radius, crop, wait_seconds=8.0):
     status = {"state": state, "district": district, "source": source_label(),
               "sample_key": source() == "datagov" and api_key() == SAMPLE_KEY}
     try:
-        records, age = await feed(client, state, crop)
+        records, age = await feed(client, state, crop, near=(lat, lon, radius, district))
     except FeedUnavailable as exc:
         return {**status, "status": "feed_unavailable", "error": str(exc)}
+    status["source"] = source_label()
     key = (norm_state(state), round(lat, 1), round(lon, 1), round(radius), crop if source() != "datagov" else "*")
     job = _jobs.get(key)
     if job is None or (job[0].done() and time.monotonic() - job[1]["finished"] > feed_ttl()):
