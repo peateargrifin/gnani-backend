@@ -85,15 +85,29 @@ MESSAGES = {
 def now():
     return datetime.now(timezone.utc).isoformat()
 
+_ready = set()  # database files whose tables exist in this process
+
+def db_path():
+    # Serverless hosts (Vercel) only allow writing to /tmp.
+    return os.getenv("DATABASE_PATH") or ("/tmp/mandi.db" if os.getenv("VERCEL") else "./mandi.db")
+
 def connect():
-    db = sqlite3.connect(os.getenv("DATABASE_PATH", "./mandi.db"))
+    path = db_path()
+    db = sqlite3.connect(path)
     db.row_factory = sqlite3.Row
     db.execute("PRAGMA foreign_keys=ON")
+    if path not in _ready:  # create tables on first use: serverless may skip startup hooks
+        _ready.add(path)
+        _create_tables(db)
     return db
 
 def init_db():
     with connect() as db:
-        db.executescript("""
+        _create_tables(db)
+
+def _create_tables(db):
+    db.executescript("""
+        CREATE TABLE IF NOT EXISTS geocodes (query TEXT PRIMARY KEY, latitude REAL, longitude REAL, label TEXT, created_at TEXT NOT NULL);
         CREATE TABLE IF NOT EXISTS markets (
             id INTEGER PRIMARY KEY, name TEXT NOT NULL, state TEXT NOT NULL,
             district TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL,
