@@ -109,6 +109,11 @@ class IntentIn(BaseModel):
 def home():
     return FileResponse(STATIC / "index.html")
 
+@app.get("/pitch", include_in_schema=False)
+def pitch():
+    """One-page solution pitch for the challenge submission."""
+    return FileResponse(STATIC / "pitch.html")
+
 @app.get("/health")
 def health():
     return {"status":"ok", "gnani_configured":bool(os.getenv("GNANI_API_KEY")), "live_prices":live.enabled(),

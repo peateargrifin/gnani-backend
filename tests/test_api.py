@@ -178,6 +178,8 @@ async def test_page_has_no_demo_wording_and_locate_endpoint(monkeypatch):
         return {"lat": 27.0, "lon": 78.3, "label": "Fatehabad, Agra, Uttar Pradesh"} if "fatehabad" in query.casefold() else None
     monkeypatch.setattr(live, "find_place", fake_find)
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app),base_url="http://test") as client:
+        pitch = await client.get("/pitch")
+        assert pitch.status_code == 200 and "Prisma v3.0" in pitch.text and "Timbre v3.0" in pitch.text
         page = (await client.get("/")).text
         assert "demo" not in page.casefold() and "dijkstra" not in page.casefold()
         assert (await client.post("/v1/locate",json={"query":"Fatehabad"})).json()["label"].startswith("Fatehabad")
